@@ -114,6 +114,7 @@ function voteStampText(value,byAdmin=false){return 'Abgestimmt: '+(value?voteTim
 function voteStampHTML(value,byAdmin=false){return value||byAdmin?`<small class="vote-stamp">${esc(voteStampText(value,byAdmin))}</small>`:'';}
 
 function meetingNote(id,memberId){return meetingNotes.find(x=>x.meeting_id===id&&x.member_id===memberId)?.note||"";}
+function meetingNoteEditable(m){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(p=>[p.type,p.value]));return !!m&&/^\d{4}-\d{2}-\d{2}$/.test(m.date||'')&&m.date>=`${parts.year}-${parts.month}-${parts.day}`;}
 function meetingNoteDisplay(m,memberId){const saved=meetingNotes.find(x=>x.meeting_id===m.id&&x.member_id===memberId);return saved?String(saved.note||''):(['present','unsure'].includes(effective(m,memberId)?.status)?effective(m,memberId)?.note||'':'');}
 function rsvpRoster(m){
  if(!section('members'))return '';
@@ -216,7 +217,7 @@ function votePanel(m,compact=false){
  const summary=closed?'Abstimmung geschlossen':`Frist: ${deadlineLabel(deadline)}`;
  return `<div class="vote-panel ${compact?'compact':''}"><div class="vote-header"><strong>Deine Teilnahme</strong><span class="chip ${locked||closed?'gray':''}">${esc(summary)}</span></div>
  <div class="vote-actions">${[['present','👍','Dabei','yes'],['unsure','❓','Unsicher','unsure'],['absent','👎','Nicht dabei','no']].map(([value,emoji,label,tone])=>`<button type="button" class="vote-btn ${status===value?'selected '+tone:''}" data-vote="${value}" data-meeting-id="${esc(m.id)}" aria-label="${label}" title="${label}" aria-pressed="${status===value}" ${locked||closed||busy?'disabled':''}>${emoji}</button>`).join('')}</div>
- ${['present','unsure'].includes(status)&&!locked&&!closed?`<div class="meeting-note-editor"><label class="note-input-label" for="meeting-note-${esc(m.id)}">Notiz hinzufügen (optional)</label><div class="meeting-note-fields"><input id="meeting-note-${esc(m.id)}" class="meeting-note-input" data-meeting-note="${esc(m.id)}" maxlength="160" value="${esc(meetingNoteDisplay(m,profile.member_id))}" placeholder="z. B. Komme etwas später"><button type="button" class="smallbtn" data-save-meeting-note="${esc(m.id)}" ${busy?'disabled':''}>Speichern</button></div></div>`:''}
+ ${['present','unsure'].includes(status)&&meetingNoteEditable(m)?`<div class="meeting-note-editor"><label class="note-input-label" for="meeting-note-${esc(m.id)}">Notiz hinzufügen (optional)</label><div class="meeting-note-fields"><input id="meeting-note-${esc(m.id)}" class="meeting-note-input" data-meeting-note="${esc(m.id)}" maxlength="160" value="${esc(meetingNoteDisplay(m,profile.member_id))}" placeholder="z. B. Komme etwas später"><button type="button" class="smallbtn" data-save-meeting-note="${esc(m.id)}" ${busy?'disabled':''}>Speichern</button></div></div>`:''}
  ${status?`<small class="muted">${voteStatusHTML(status)}${status==='absent'&&section('absences')&&own.reason?' · '+esc(own.reason):''}</small>`:'<small class="muted">Noch offen</small>'}</div>`;
 }
 function coalesceSource(a){return a.source||'admin';}
@@ -715,7 +716,7 @@ async function saveMeetingNote(id,fromVote=false){
  const note=input.value.trim();if(note.length>160)return alert('Maximal 160 Zeichen erlaubt.');
  const meeting=data?.meetings?.find(m=>m.id===id);
  if(!meeting||!['present','unsure'].includes(effective(meeting,profile.member_id)?.status))return alert('Notizen sind bei einer Zusage oder „Unsicher“ möglich.');
- const deadline=deadlines.get(id);if(!deadline||Date.now()>=new Date(deadline).getTime())return alert('Die Abstimmungsfrist ist abgelaufen.');
+ if(!meetingNoteEditable(meeting))return alert('Der Stammtisch ist bereits beendet.');
  const {error}=await cloud.from('fantastix_meeting_notes').upsert({meeting_id:id,member_id:profile.member_id,note},{onConflict:'meeting_id,member_id'});
  if(error)return alert('Notiz konnte nicht gespeichert werden: '+error.message+' (SQL 19 installieren)');
  await refresh();
