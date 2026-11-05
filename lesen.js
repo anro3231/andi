@@ -109,6 +109,10 @@ function voteTime(value){
  if(!Number.isFinite(parsed.getTime()))return '';
  return new Intl.DateTimeFormat('de-AT',{timeZone:'Europe/Vienna',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(parsed).replace(',', ' · ')+' Uhr';
 }
+
+function voteStampText(value,byAdmin=false){return 'Abgestimmt: '+(value?voteTime(value):'Zeitpunkt nicht erfasst')+(byAdmin?' (durch Admin)':'');}
+function voteStampHTML(value,byAdmin=false){return value||byAdmin?`<small class="vote-stamp">${esc(voteStampText(value,byAdmin))}</small>`:'';}
+
 function meetingNote(id,memberId){return meetingNotes.find(x=>x.meeting_id===id&&x.member_id===memberId)?.note||"";}
 function meetingNoteDisplay(m,memberId){const saved=meetingNotes.find(x=>x.meeting_id===m.id&&x.member_id===memberId);return saved?String(saved.note||''):(['present','unsure'].includes(effective(m,memberId)?.status)?effective(m,memberId)?.note||'':'');}
 function rsvpRoster(m){
@@ -117,8 +121,8 @@ function rsvpRoster(m){
  return `<div class="attendee-block"><div class="roster-header"><strong>${m.date<=today()?'Anwesenheit':'Abstimmungsstand'}</strong><small>${readerCountSummary(count)}</small></div>
  <div class="roster-list">${memberOrder().filter(p=>p.active!==false||effective(m,p.id)).map(p=>{
  const a=effective(m,p.id),note=['present','unsure'].includes(a?.status)?meetingNoteDisplay(m,p.id):'';
- return `<div class="roster-row"><div class="roster-name">${avatarFor(p.id)} <span class="roster-name-text">${esc(p.name)}${a?.status==='absent'&&section('absences')?`<small class="absence-reason">Grund: ${esc(a.reason||'Keine Angabe aus älterem Datenstand')}</small>`:''}</span></div>
- <div class="roster-right"><span class="chip ${!a?'gray':a.status==='present'?'yes-chip':a.status==='unsure'?'gray':'no-chip'}">${voteStatusHTML(a?.status)}</span>${a?.updatedAt?`<small class="vote-stamp">Abgestimmt: ${esc(voteTime(a.updatedAt))}</small>`:''}${note?`<small class="meeting-note-visible">📝 ${esc(note)}</small>`:''}</div></div>`;
+ return `<div class="roster-row"><div class="roster-name">${avatarFor(p.id)} <span class="roster-name-text">${esc(p.name)}${a?.status==='absent'&&section('absences')&&a.reason?`<small class="absence-reason">Grund: ${esc(a.reason)}</small>`:''}</span></div>
+ <div class="roster-right"><span class="chip ${!a?'gray':a.status==='present'?'yes-chip':a.status==='unsure'?'gray':'no-chip'}">${voteStatusHTML(a?.status)}</span>${voteStampHTML(a?.updatedAt,a?.source==='admin')}${note?`<small class="meeting-note-visible">📝 ${esc(note)}</small>`:''}</div></div>`;
  }).join('')}</div></div>`;
 }
 
@@ -128,7 +132,7 @@ function tripLastDate(x){return x.endDate||x.date||'';}
 function nextTrip(){return [...(data?.excursions||[])].filter(x=>!x.completed&&(!x.date||tripLastDate(x)>=today())).sort((a,b)=>Number(!a.date)-Number(!b.date)||String(a.date||'').localeCompare(String(b.date||''))||a.title.localeCompare(b.title,'de'))[0]||null;}
 function excursionOwn(x){return excursionVotes.find(v=>v.excursion_id===x.id&&v.member_id===profile?.member_id);}
 function excursionCount(id){const votes=excursionVotes.filter(v=>v.excursion_id===id);return {yes:votes.filter(v=>v.status==='yes').length,unsure:votes.filter(v=>v.status==='unsure').length,no:votes.filter(v=>v.status==='no').length,open:data.members.filter(m=>m.active!==false&&!votes.some(v=>v.member_id===m.id)).length};}
-function excursionRoster(x){return `<div class="attendee-block"><div class="roster-header"><strong>Rückmeldungen</strong><small>${readerCountSummary(excursionCount(x.id))}</small></div><div class="roster-list">${memberOrder().filter(m=>m.active!==false||excursionVotes.some(v=>v.excursion_id===x.id&&v.member_id===m.id)).map(m=>{const v=excursionVotes.find(v=>v.excursion_id===x.id&&v.member_id===m.id);return `<div class="roster-row"><div class="roster-name">${avatarFor(m.id)} <span class="roster-name-text">${esc(m.name)}</span></div><div class="roster-right"><span class="chip ${v?.status==='yes'?'yes-chip':v?.status==='no'?'no-chip':v?.status==='unsure'?'gray':'gray'}">${voteStatusHTML(v?.status)}</span>${v?.updated_at?`<small class="vote-stamp">Abgestimmt: ${esc(voteTime(v.updated_at))}</small>`:''}${v?.admin_locked?'<small class="muted">Admin-Korrektur</small>':''}</div></div>`}).join('')}</div></div>`;}
+function excursionRoster(x){return `<div class="attendee-block"><div class="roster-header"><strong>Rückmeldungen</strong><small>${readerCountSummary(excursionCount(x.id))}</small></div><div class="roster-list">${memberOrder().filter(m=>m.active!==false||excursionVotes.some(v=>v.excursion_id===x.id&&v.member_id===m.id)).map(m=>{const v=excursionVotes.find(v=>v.excursion_id===x.id&&v.member_id===m.id);return `<div class="roster-row"><div class="roster-name">${avatarFor(m.id)} <span class="roster-name-text">${esc(m.name)}</span></div><div class="roster-right"><span class="chip ${v?.status==='yes'?'yes-chip':v?.status==='no'?'no-chip':v?.status==='unsure'?'gray':'gray'}">${voteStatusHTML(v?.status)}</span>${voteStampHTML(v?.updated_at,!!(v?.admin_cast||v?.admin_locked))}</div></div>`}).join('')}</div></div>`;}
 const stats=(id,y)=>data.meetings.filter(m=>m.date<=today()&&(!y||m.date.startsWith(y))&&effective(m,id)?.status==='present').length;
 const count=(m,y)=>y?stats(m.id,y)+(y==='2026'?n(m.historical2026Count):0):stats(m.id)+n(m.historicalCount);
 const ranks=y=>[...data.members].map(m=>({...m,count:count(m,y)})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'de'));
@@ -620,7 +624,7 @@ async function refreshReaderData(run,background){
   await Promise.all([
    (async()=>{
     if(!section('excursions')){excursionVotes=[];excursionVoteError='';return;}
-    try{const res=await cloud.rpc('fantastix_excursion_votes_read_v2');if(!readerRefreshCurrent(run))return;if(res.error)throw res.error;excursionVotes=res.data||[];excursionVoteError='';}
+    try{const res=await cloud.rpc('fantastix_excursion_votes_read_v3');if(!readerRefreshCurrent(run))return;if(res.error)throw res.error;excursionVotes=res.data||[];excursionVoteError='';}
     catch(e){if(readerRefreshCurrent(run)){excursionVoteError='Eventszusagen derzeit nicht verfügbar.';excursionVotes=[];console.warn(e);}}
    })(),
    (async()=>{try{const notes=await cloud.from('fantastix_meeting_notes').select('meeting_id,member_id,note');if(!readerRefreshCurrent(run))return;if(notes.error)throw notes.error;meetingNotes=notes.data||[];}catch(e){if(readerRefreshCurrent(run)){meetingNotes=[];console.warn('Mitgliedernotizen nicht verfügbar:',e.message);}}})(),

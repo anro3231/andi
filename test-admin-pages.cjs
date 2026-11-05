@@ -63,6 +63,8 @@ run(`cloudClient={rpc:mockRPC};reloadExcursionVotes=async()=>{excursionVotes=[{e
  vm.runInContext('data=fixture;',readerCtx);
  assert.match(vm.runInContext('cash()',readerCtx),/class="fine-date"/);
  assert.match(vm.runInContext('cash()',readerCtx),/01\.01\.2026/);
+ run("saveMeeting(testFD({id:'m1',date:'2020-02-01',time:'18:30','status-a':'unsure','status-b':'absent','reason-b':'','fine-b':'12'}))");
+ assert.equal(run("data.meetings.find(m=>m.id==='m1').attendance.b.reason"),'');assert.equal(run("data.meetings.find(m=>m.id==='m1').attendance.b.source"),'admin');assert.match(run("voteStampHTML(data.meetings.find(m=>m.id==='m1').attendance.b.updatedAt,true)"),/\(durch Admin\)/);
  assert.equal(alerts.length,0,alerts.join('\n'));
  console.log('PASS admin pages: matching lists, inline forms, retained drafts, discard handling, event votes, form submits, automatic/preserved fine dates and public reader dates.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

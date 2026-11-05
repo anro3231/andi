@@ -17,14 +17,14 @@ function environment(){
  return {dom,w,run:w.run,doc:w.document,pending,resolve(key,value={data:[],error:null}){assert.ok(pending.get(key)?.length,'Pending '+key);pending.get(key).shift().resolve(value);},reject(key,error){pending.get(key).shift().reject(error);}};
 }
 async function core(env){env.resolve('reader_profiles',{data:{member_id:'a'}});env.resolve('public',{data:{content:structuredClone(env.w.fixture),published_at:'2026-10-28T12:00:00Z'}});env.resolve('fantastix_reader_deadlines',{data:[{meeting_id:'m',deadline_at:'2098-12-31T00:00:00Z'}]});await tick();}
-async function optional(env){for(const key of ['fantastix_excursion_votes_read_v2','meeting_notes','birthdays','avatars','fantastix_notice_list','fantastix_member_event','extras'])env.resolve(key);await tick();}
+async function optional(env){for(const key of ['fantastix_excursion_votes_read_v3','meeting_notes','birthdays','avatars','fantastix_notice_list','fantastix_member_event','extras'])env.resolve(key);await tick();}
 (async()=>{
  const env=environment(),{w,doc,run}=env;
  // A menu must render synchronously before any response arrives.
  doc.querySelector('[data-tab="meetings"]').click();assert.equal(run('tab'),'meetings');assert.match(doc.querySelector('#content h1').textContent,/Stammtische/);assert.equal(doc.querySelector('.navbutton.active').dataset.tab,'meetings');
  assert.equal(w.calls.filter(x=>x==='reader_profiles').length,1);assert.equal(w.calls.length,3,'Core queries started together');
  doc.querySelector('[data-tab="calendar"]').click();assert.match(doc.querySelector('#content h1').textContent,/Kalender/);assert.equal(w.calls.length,3,'Rapid menu changes reuse one in-flight request');
- await core(env);for(const key of ['meeting_notes','birthdays','avatars','extras','fantastix_excursion_votes_read_v2','fantastix_notice_list'])assert.ok(w.calls.includes(key),key+' started without waiting on other optional reads');
+ await core(env);for(const key of ['meeting_notes','birthdays','avatars','extras','fantastix_excursion_votes_read_v3','fantastix_notice_list'])assert.ok(w.calls.includes(key),key+' started without waiting on other optional reads');
  assert.match(doc.querySelector('#content h1').textContent,/Kalender/,'Completion keeps the most recently selected menu');
  await optional(env);assert.equal(w.pushChecks,1);
  const calls=w.calls.length;doc.querySelector('[data-tab="members"]').click();doc.querySelector('[data-tab="meetings"]').click();assert.equal(w.calls.length,calls,'Fresh background snapshot is reused');

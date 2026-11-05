@@ -19,6 +19,8 @@ assert.doesNotMatch(html,/meeting-note-visible/);
 assert.match(html,/Grund: Urlaub/);
 run('data.sections.members=false');
 assert.equal(run('rsvpRoster(testMeeting)'), '');
+run("data.sections.members=true;data.sections.absences=true;testMeeting.attendance.a={status:'absent',source:'admin',updatedAt:'2026-11-05T10:00:00Z',reason:''}");html=run('rsvpRoster(testMeeting)');assert.match(html,/Abgestimmt:.*\(durch Admin\)/);assert.doesNotMatch(html,/Grund:/);run("testMeeting.attendance.a.source='member'");assert.doesNotMatch(run('rsvpRoster(testMeeting)'),/durch Admin/);
+run("data.excursions=[{id:'e'}];excursionVotes=[{excursion_id:'e',member_id:'a',status:'yes',updated_at:'2026-11-05T10:00:00Z',admin_locked:false,admin_cast:true}]");assert.match(run('excursionRoster(data.excursions[0])'),/Abgestimmt:.*\(durch Admin\)/);
 vm.runInContext(fs.readFileSync(__dirname+'/calendar-view.js','utf8'),ctx);
 const {render,period,move}=ctx.window.FantastiXCalendar;
 html=render({excursions:[{title:'Erster',date:'2026-10-01',endDate:'2026-10-03'},{title:'Zweiter',date:'2026-10-05'}]},'2026-10','2026-10-02',false);
