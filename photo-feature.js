@@ -22,7 +22,7 @@ function paint(){for(const el of document.querySelectorAll('[data-daily-photo]')
  const active=document.activeElement;
  const focus=el.contains(active)?['[data-photo-shuffle]','[data-photo-upload]'].find(s=>active.matches(s)):null;
  const p=currentPhoto();
- el.innerHTML=p?`<figure class="daily-photo-figure"><div class="daily-photo-surface"><img src="${escape(p.thumbURL)}" alt="Stammtisch-Bild" decoding="async" width="960" height="640">${shuffleBusy||shuffleError?`<p class="photo-browse-status" role="status">${escape(shuffleBusy?'Bild wird geladen …':shuffleError)}</p>`:''}</div><figcaption class="daily-photo-by">Von ${escape(p.uploader||'einem Mitglied')}</figcaption></figure>${photoActions(true)}`:`<div class="daily-photo-empty"><span aria-hidden="true">📷</span><p>Noch keine Bilder vorhanden.<br>Teile die erste Erinnerung vom Stammtisch!</p></div>${photoActions()}`;
+ el.innerHTML=p?`<figure class="daily-photo-figure"><div class="daily-photo-surface"><img src="${escape(p.thumbURL)}" alt="Stammtisch-Bild" decoding="async" width="960" height="640">${shuffleBusy||shuffleError?`<p class="photo-browse-status" role="status">${escape(shuffleBusy?'Bild wird geladen …':shuffleError)}</p>`:''}</div><figcaption class="daily-photo-by">Hochgeladen von ${escape(p.uploader||'einem Mitglied')}</figcaption></figure>${photoActions(true)}`:`<div class="daily-photo-empty"><span aria-hidden="true">📷</span><p>Noch keine Bilder vorhanden.<br>Teile die erste Erinnerung vom Stammtisch!</p></div>${photoActions()}`;
  if(focus)el.querySelector(focus)?.focus({preventScroll:true});
  const img=el.querySelector('img');if(img)img.addEventListener('error',()=>{el.innerHTML=unavailable('Das Bild ist gerade nicht verfügbar.');},{once:true});
 }}
