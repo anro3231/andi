@@ -16,14 +16,24 @@ const uploadButton='<button class="ghost daily-photo-upload" type="button" data-
 const photoActions=(withShuffle=false)=>`<div class="daily-photo-actions">${withShuffle?`<button class="ghost daily-photo-shuffle" type="button" data-photo-shuffle aria-disabled="${shuffleBusy}"><span aria-hidden="true">🔀</span> Shuffle</button>`:''}${uploadButton}</div>`;
 const unavailable=(message)=>`<p class="muted">${message}</p><button class="smallbtn" type="button" data-photo-refresh>Erneut laden</button>${photoActions()}`;
 function card(){return `<section class="card daily-photo-card" aria-labelledby="daily-photo-heading"><h2 id="daily-photo-heading">Unser Bild des Tages</h2><div data-daily-photo><p class="muted">Bild wird geladen …</p></div></section>`;}
-function paint(){for(const el of document.querySelectorAll('[data-daily-photo]')){
+const shuffleStatus=()=>shuffleBusy?'Bild wird geladen …':shuffleError;
+function markShuffleLoading(){
+ for(const el of document.querySelectorAll('[data-daily-photo]')){
+  el.querySelector('[data-photo-shuffle]')?.setAttribute('aria-disabled','true');
+  const message=el.querySelector('.photo-browse-status');
+  if(message){message.hidden=false;message.textContent=shuffleStatus();}
+ }
+}
+function paint(previousPhoto){for(const el of document.querySelectorAll('[data-daily-photo]')){
  if(!account){el.innerHTML='<p class="muted">Bitte anmelden, um Bilder zu sehen und hochzuladen.</p>';continue;}
  if(!daily){el.innerHTML='<p class="muted">Bild wird geladen …</p>';continue;}
  const active=document.activeElement;
  const focus=el.contains(active)?['[data-photo-shuffle]','[data-photo-upload]'].find(s=>active.matches(s)):null;
  const p=currentPhoto();
- el.innerHTML=p?`<figure class="daily-photo-figure"><div class="daily-photo-surface"><img src="${escape(p.thumbURL)}" alt="Stammtisch-Bild" decoding="async" width="960" height="640">${shuffleBusy||shuffleError?`<p class="photo-browse-status" role="status">${escape(shuffleBusy?'Bild wird geladen …':shuffleError)}</p>`:''}</div><figcaption class="daily-photo-by">Hochgeladen von ${escape(p.uploader||'einem Mitglied')}</figcaption></figure>${photoActions(true)}`:`<div class="daily-photo-empty"><span aria-hidden="true">📷</span><p>Noch keine Bilder vorhanden.<br>Teile die erste Erinnerung vom Stammtisch!</p></div>${photoActions()}`;
+ el.innerHTML=p?`<figure class="daily-photo-figure"><div class="daily-photo-surface"><img src="${escape(p.thumbURL)}" alt="Stammtisch-Bild" decoding="async" width="960" height="640">${previousPhoto?`<img class="daily-photo-outgoing" src="${escape(previousPhoto.thumbURL)}" alt="" aria-hidden="true" width="960" height="640">`:''}<p class="photo-browse-status" role="status"${shuffleStatus()?'':' hidden'}>${escape(shuffleStatus())}</p></div><figcaption class="daily-photo-by">Hochgeladen von ${escape(p.uploader||'einem Mitglied')}</figcaption></figure>${photoActions(true)}`:`<div class="daily-photo-empty"><span aria-hidden="true">📷</span><p>Noch keine Bilder vorhanden.<br>Teile die erste Erinnerung vom Stammtisch!</p></div>${photoActions()}`;
  if(focus)el.querySelector(focus)?.focus({preventScroll:true});
+ const outgoing=el.querySelector('.daily-photo-outgoing');
+ outgoing?.addEventListener('animationend',()=>outgoing.remove(),{once:true});
  const img=el.querySelector('img');if(img)img.addEventListener('error',()=>{el.innerHTML=unavailable('Das Bild ist gerade nicht verfügbar.');},{once:true});
 }}
 async function signed(path,c){const r=await c.client.storage.from(BUCKET).createSignedUrl(path,3600);if(r.error)throw r.error;return r.data.signedUrl;}
@@ -50,9 +60,20 @@ async function submit(form){if(uploadBusy||!selected)return;const c=identity(),t
  await rpc('commit',{id:record.id},c);if(token!==generation)return;status('Bild hochgeladen! Danke für deine Erinnerung.');form.innerHTML='<div class="photo-success"><span aria-hidden="true">✓</span><h3>Bild hochgeladen!</h3><p>Dein Bild kann ab jetzt als Bild des Tages erscheinen.</p><button type="button" class="button" data-photo-close>Fertig</button></div>';dailyAt=0;await load(true);
  }catch(e){let cleanup='';if(record)try{await removePhoto(record.id,c);}catch{cleanup=' Ein unvollständiger Upload kann vom Admin unter Bilder verwalten entfernt werden.';}if(token===generation){status('Upload fehlgeschlagen: '+(e.message||String(e))+cleanup);form.querySelectorAll('button,input').forEach(x=>x.disabled=false);}}
  finally{uploadBusy=false;}}
+async function preloadPhoto(url){
+ const image=new Image();
+ if(typeof image.decode==='function'){
+  image.src=url;
+  await image.decode();
+ }else{
+  await new Promise((resolve,reject)=>{
+   image.onload=resolve;image.onerror=reject;image.src=url;
+  });
+ }
+}
 async function shufflePhoto(){
  const c=identity(),current=currentPhoto();if(!c.user||!current||shuffleBusy)return;
- const run=shuffleRun;shuffleBusy=true;shuffleError='';paint();
+ const run=shuffleRun;let outgoing;shuffleBusy=true;shuffleError='';markShuffleLoading();
  try{
   if(!photoPool){
    const pool=new Map();let cursor={};
@@ -71,9 +92,11 @@ async function shufflePhoto(){
   const next=choices[Math.floor(Math.random()*choices.length)];
   const thumbURL=await signed(next.thumb_path,c);
   if(run!==shuffleRun||context().user?.id!==c.user.id)return;
-  shuffledPhoto={...next,thumbURL};
+  await preloadPhoto(thumbURL);
+  if(run!==shuffleRun||context().user?.id!==c.user.id)return;
+  shuffledPhoto={...next,thumbURL};outgoing=current;
  }catch(e){if(run===shuffleRun){photoPool=null;shuffleError='Bild konnte nicht geladen werden. Bitte erneut versuchen.';}}
- finally{if(run===shuffleRun){shuffleBusy=false;paint();}}
+ finally{if(run===shuffleRun){shuffleBusy=false;paint(outgoing);}}
 }
 async function manage(more=false){const c=identity();if(!c.admin)return;if(listBusy)return;listBusy=true;const token=generation;
  if(!more){rows=[];show(`<div class="photo-dialog-head"><h2>Bilder verwalten</h2>${closeButton}</div><div data-photo-gallery></div><p class="photo-status hint" role="status">Bilder werden geladen …</p>`);}
