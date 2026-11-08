@@ -47,7 +47,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "3.29";
+const APP_VERSION = window.FX_VERSION || "3.29.1";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -80,7 +80,7 @@ function validateBackup(v){
  const nums=v.members.map(memberNo).filter(x=>x!==null);
  if(new Set(nums).size!==nums.length)throw Error('Doppelte Mitgliedsnummern.');
  if(!v.meetings.every(m=>/^\d{4}-\d{2}-\d{2}$/.test(m.date||'')&&m.attendance&&typeof m.attendance==='object'&&!Array.isArray(m.attendance)))throw Error('Ungültige Stammtische.');
- if(v.excursions.length>2000||!v.excursions.every(x=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.id==='string'&&x.id.length>0&&x.id.length<250&&typeof x.title==='string'&&x.title.length>0&&x.title.length<=120&&(!x.date||/^\d{4}-\d{2}-\d{2}$/.test(x.date))&&(!x.endDate||(/^\d{4}-\d{2}-\d{2}$/.test(x.endDate)&&!!x.date&&x.endDate>=x.date))&&String(x.location||'').length<=180&&String(x.notes||'').length<=2000&&String(x.organizerOther||'').length<=200&&Array.isArray(x.organizerIds)&&x.organizerIds.length<=250&&x.organizerIds.every(id=>typeof id==='string'&&id.length<250)))throw Error('Ungültige Eventsdaten.');
+ if(v.excursions.length>2000||!v.excursions.every(x=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.id==='string'&&x.id.length>0&&x.id.length<250&&typeof x.title==='string'&&x.title.length>0&&x.title.length<=120&&(!x.date||/^\d{4}-\d{2}-\d{2}$/.test(x.date))&&(!x.endDate||(/^\d{4}-\d{2}-\d{2}$/.test(x.endDate)&&!!x.date&&x.endDate>=x.date))&&(!x.time||/^([01]\d|2[0-3]):[0-5]\d$/.test(x.time))&&String(x.location||'').length<=180&&String(x.notes||'').length<=2000&&String(x.organizerOther||'').length<=200&&Array.isArray(x.organizerIds)&&x.organizerIds.length<=250&&x.organizerIds.every(id=>typeof id==='string'&&id.length<250)))throw Error('Ungültige Eventsdaten.');
  if(new Set(v.excursions.map(x=>x.id)).size!==v.excursions.length)throw Error('Doppelte Events-IDs.');
  if(!v.fines.every(f=>Number.isSafeInteger(f.amountCents)&&f.amountCents>=0&&typeof f.memberId==='string'&&typeof f.reason==='string'))throw Error('Ungültige Strafen.');
  if(!v.payments.every(p=>Number.isSafeInteger(p.amountCents)&&p.amountCents>=0&&typeof p.fineId==='string'))throw Error('Ungültige Zahlungen.');
@@ -122,7 +122,7 @@ function upcomingMeeting(){return [...data.meetings].filter(m=>m.date>=today()).
 function yearLeader(){return rankRows(yearOf(today())).find(m=>m.count>0)||null;}
 function member(id){return data.members.find(x=>x.id===id);}
 function excursionOrganizers(x){const named=(x.organizerIds||[]).map(id=>member(id)?.name).filter(Boolean);if(String(x.organizerOther||'').trim())named.push(x.organizerOther.trim());return named.length?named.join(', '):'Noch nicht festgelegt';}
-function excursionPeriod(x){return !x.date?'Termin offen':x.endDate&&x.endDate!==x.date?`${fmtDate(x.date)} – ${fmtDate(x.endDate)}`:fmtDate(x.date);}
+function excursionPeriod(x){const period=!x.date?'Termin offen':x.endDate&&x.endDate!==x.date?`${fmtDate(x.date)} – ${fmtDate(x.endDate)}`:fmtDate(x.date);return period+(x.time?' · '+esc(x.time)+' Uhr':'');}
 function excursionLastDate(x){return x.endDate||x.date||'';}
 function nextExcursion(){const pending=(data.excursions||[]).filter(x=>!x.completed&&(!x.date||excursionLastDate(x)>=today()));return [...pending].sort((a,b)=>Number(!a.date)-Number(!b.date)||String(a.date||'').localeCompare(String(b.date||''))||a.title.localeCompare(b.title,'de'))[0]||null;}
 let excursionVotes=[],excursionVoteWarning='';
@@ -383,6 +383,7 @@ function excursionForm(id){
  openAdminEntry(id?'Event bearbeiten':'Event planen',`<form data-form="excursion"><input type="hidden" name="id" value="${esc(x.id)}">
  <div class="field"><label>Bezeichnung *</label><input name="title" maxlength="120" value="${esc(x.title)}" placeholder="z. B. Hüttenwochenende" required></div>
  <div class="field"><label>Beginn (optional)</label><input type="date" name="date" value="${esc(x.date||'')}"></div>
+ <div class="field"><label for="event-time">Uhrzeit (optional)</label><input id="event-time" type="time" name="time" value="${esc(x.time||'')}"></div>
  <div class="field"><label>Ende (bei mehreren Tagen)</label><input type="date" name="endDate" value="${esc(x.endDate||'')}"></div>
  <div class="field"><label>Ort / Ziel</label><input name="location" maxlength="180" value="${esc(x.location||'')}" placeholder="Optional"></div>
  <div class="field"><label>Beschreibung</label><textarea name="notes" maxlength="2000" placeholder="Optional">${esc(x.notes||'')}</textarea></div>
@@ -420,14 +421,15 @@ async function adminExcursionVote(excursionId,memberId,status){
  finally{buttons.forEach(b=>b.disabled=!cloudReady||!!excursionVoteWarning);}
 }
 function saveExcursion(fd){
- const id=String(fd.get('id')||''),title=String(fd.get('title')||'').trim(),date=String(fd.get('date')||''),endDate=String(fd.get('endDate')||''),location=String(fd.get('location')||'').trim(),notes=String(fd.get('notes')||'').trim(),organizerOther=String(fd.get('organizerOther')||'').trim();
+ const id=String(fd.get('id')||''),title=String(fd.get('title')||'').trim(),date=String(fd.get('date')||''),endDate=String(fd.get('endDate')||''),time=String(fd.get('time')||''),location=String(fd.get('location')||'').trim(),notes=String(fd.get('notes')||'').trim(),organizerOther=String(fd.get('organizerOther')||'').trim();
  if(!title||title.length>120||location.length>180||notes.length>2000||organizerOther.length>200)return alert('Bitte gültige Eventsdaten eintragen.');
  if(date&&!/^\d{4}-\d{2}-\d{2}$/.test(date))return alert('Ungültiges Startdatum.');
  if(endDate&&(!date||!/^\d{4}-\d{2}-\d{2}$/.test(endDate)||endDate<date))return alert('Enddatum muss am oder nach dem Startdatum liegen.');
+ if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return alert('Ungültige Uhrzeit.');
  const ids=[...new Set(fd.getAll('organizerIds').map(String))];if(ids.some(n=>!member(n)))return alert('Ein Organisator ist nicht mehr vorhanden.');
  const stored=id?(data.excursions||[]).find(x=>x.id===id):null;
  if(id&&!stored)return alert('Event nicht gefunden.');
- const x={id:id||uid(),title,date,endDate,location,notes,organizerIds:ids,organizerOther,completed:fd.has('completed'),createdAt:stored?.createdAt||new Date().toISOString()};
+ const x={id:id||uid(),title,date,endDate,time,location,notes,organizerIds:ids,organizerOther,completed:fd.has('completed'),createdAt:stored?.createdAt||new Date().toISOString()};
  if(stored)Object.assign(stored,x);else data.excursions.push(x);
  closeModal();persist();
 }
@@ -986,7 +988,7 @@ function publicSnapshot(opts){
  const fines=allowFines?data.fines.map(f=>({id:f.id,memberId:f.memberId,meetingId:f.meetingId||null,date:f.date||'',reason:(f.source==='absence'&&!allowAbsences?'Abwesenheitsstrafe':f.reason),amountCents:n(f.amountCents),source:f.source||'manual'})):[];
  const payments=allowFines?data.payments.map(p=>({id:p.id,fineId:p.fineId,amountCents:n(p.amountCents),method:p.method||'Bar'})):[];
  const cashbook=allowCash?{balanceCents:accountBalance(),monthlyAmountCents:cash().monthlyAmountCents,monthlyDay:cash().monthlyDay||1,monthlyStartMonth:cash().monthlyStartMonth,transactions:cashHistory().filter(t=>allowFines||t.type!=='payment').map(t=>({id:t.id,type:t.type,month:t.month||'',note:t.note||'',amountCents:t.amountCents,date:t.date||''}))}:null;
- const excursions=opts.excursions?(data.excursions||[]).map(x=>({id:x.id,title:x.title,date:x.date||'',endDate:x.endDate||'',location:x.location||'',notes:x.notes||'',organizerIds:(x.organizerIds||[]).filter(id=>!!member(id)),organizerOther:x.organizerOther||'',completed:x.completed===true})):[];
+ const excursions=opts.excursions?(data.excursions||[]).map(x=>({id:x.id,title:x.title,date:x.date||'',endDate:x.endDate||'',time:x.time||'',location:x.location||'',notes:x.notes||'',organizerIds:(x.organizerIds||[]).filter(id=>!!member(id)),organizerOther:x.organizerOther||'',completed:x.completed===true})):[];
  return {schemaVersion:4,rsvpCutoffHours:voteDeadlineHours(),publishedAt:new Date().toISOString(),sections:{members:allowMembers,meetings:allowMeetings,excursions:!!opts.excursions,absences:allowAbsences,fines:allowFines,cash:allowCash},members,meetings,excursions,fines,payments,cashbook};
 }
 async function publishPublic(ask=true){

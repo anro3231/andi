@@ -7,7 +7,7 @@
  function local(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
  function shift(date,offset){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+offset);return local(d);}
  function datesBetween(start,end,low,high){if(!valid(start))return[];const a=start<low?low:start,b=(valid(end)&&end>=start?end:start)>high?high:(valid(end)&&end>=start?end:start);const days=[];for(let x=a;x<=b&&days.length<42;x=shift(x,1))days.push(x);return days;}
- function period(x){if(!valid(x.date))return 'Termin offen';const d=s=>new Date(s+'T12:00:00').toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'});return valid(x.endDate)&&x.endDate>x.date?d(x.date)+' – '+d(x.endDate):d(x.date);}
+ function period(x){const time=x.time?' · '+enc(x.time)+' Uhr':'';if(!valid(x.date))return 'Termin offen'+time;const d=s=>new Date(s+'T12:00:00').toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'});return (valid(x.endDate)&&x.endDate>x.date?d(x.date)+' – '+d(x.endDate):d(x.date))+time;}
  function render(data,month,selected,admin){
   const {meetings=[],excursions=[],birthdays=[]}=data||{};month=/^\d{4}-\d{2}$/.test(month||'')?month:local(new Date()).slice(0,7);
   const base=new Date(month+'-01T12:00:00');if(!valid(month+'-01'))return '<p>Kalenderdatum ungültig</p>';

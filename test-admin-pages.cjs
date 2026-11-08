@@ -31,8 +31,13 @@ run('adminEntry.dirty=true');confirmation=false;assert.equal(run('leaveAdminEntr
 assert.ok(run('adminEntry!==null'));
 confirmation=true;assert.equal(run('leaveAdminEntry()'),true);assert.equal(run('adminEntry'),null);
 run("excursionForm('x1')");assert.equal(dialog.open,false);
-assert.match(app.innerHTML,/data-form="excursion"/);assert.match(app.innerHTML,/excursion-delete/);
+assert.match(app.innerHTML,/data-form="excursion"/);assert.match(app.innerHTML,/type="time" name="time"/);assert.match(app.innerHTML,/excursion-delete/);
 assert.match(app.innerHTML,/data-action="excursion-admin-vote"/);
+run("saveExcursion(testFD({id:'x1',title:'Event',date:'2099-11-01',time:'20:15',organizerIds:[]}))");
+assert.equal(run("data.excursions[0].time"),'20:15');
+assert.match(run("excursionPeriod(data.excursions[0])"),/20:15 Uhr/);
+assert.equal(run("publicSnapshot({excursions:true}).excursions[0].time"),'20:15');
+run("excursionForm('x1')");assert.match(app.innerHTML,/name="time" value="20:15"/);
 run('cloudReady=true;cloudUser={id:"admin"}');
 ctx.mockRPC=async(name,args)=>{calls.push({name,args});return {error:null};};
 run(`cloudClient={rpc:mockRPC};reloadExcursionVotes=async()=>{excursionVotes=[{excursion_id:'x1',member_id:'a',status:'yes'}];render();};`);
