@@ -341,6 +341,19 @@ async function refreshReaderExtras(){
 }
 function readerBellIcon(){return window.FantastixUI?.icon('bell')||'🔔';}
 function readerBell(){const unread=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;return `<button type="button" id="reader-bell" class="reader-bell" aria-label="Benachrichtigungen">${readerBellIcon()} ${unread?`<b>${unread}</b>`:''}</button>`;}
+// Dates inside notification text are calendar dates; do not shift them by timezone.
+function bellDateText(value){
+ return String(value??'').replace(/https?:\/\/\S+|\b(\d{4})-(\d{2})-(\d{2})\b|\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/g,(match,y,m,d,day,month,year)=>{
+  if(y)return d+'.'+m+'.'+y;
+  if(year)return day.padStart(2,'0')+'.'+month.padStart(2,'0')+'.'+year;
+  return match;
+ });
+}
+function bellTimestamp(value){
+ if(!value)return '–';
+ const date=new Date(value);if(Number.isNaN(date.valueOf()))return '–';
+ return date.toLocaleString('de-AT',{timeZone:'Europe/Vienna',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
 function readerInbox(){
  function noticeText(x){
   const labels={birthday:'Geburtstag',vote:'Abstimmung',organizer_vote:'Abstimmung zu deinem Termin',organizer_assignment:'Organisator-Zuweisung',fine:'Strafe',paid:'Bezahlte Strafe',vote_reminder:'Abstimmungserinnerung',created:'Neuer Termin',schedule:'Terminänderung',location:'Ortsänderung',deleted:'Termin entfernt',announcement:'Nachricht'};
@@ -356,7 +369,7 @@ function readerInbox(){
   return {label,body:`Zu „${title}“: ${body}.`};
  }
  const unread=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;
- return `<section class="card fx-reader-inbox fx-inbox-content"><div class="fx-inbox-head"><h2>🔔 Benachrichtigungen</h2><button type="button" class="smallbtn" id="reader-inbox-close">Schließen</button></div><div class="fx-inbox-summary"><span>${unread} ungelesen · ${readerUpdates.length} Meldungen</span><button type="button" class="smallbtn" id="reader-read-all" ${!unread||readerReadBusy?'disabled':''}>Alle als gelesen markieren</button></div>${[...readerUpdates].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).map(x=>{const isRead=readerUpdateReads.has(x.id);return `<article class="fx-inbox-item ${isRead?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${isRead?'':'<span class="fx-unread-dot" aria-label="Ungelesen"></span>'}</div><strong>${esc(x.title)}</strong><p>${esc(noticeText(x).body)}</p><div class="fx-inbox-item-bottom"><small>${dateTime(x.created_at)}</small>${isRead?'<small>Gelesen</small>':`<button type="button" class="smallbtn" data-reader-read="${esc(x.id)}" ${readerReadBusy?'disabled':''}>Gelesen</button>`}</div></article>`;}).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</section>`;
+ return `<section class="card fx-reader-inbox fx-inbox-content"><div class="fx-inbox-head"><h2>🔔 Benachrichtigungen</h2><button type="button" class="smallbtn" id="reader-inbox-close">Schließen</button></div><div class="fx-inbox-summary"><span>${unread} ungelesen · ${readerUpdates.length} Meldungen</span><button type="button" class="smallbtn" id="reader-read-all" ${!unread||readerReadBusy?'disabled':''}>Alle als gelesen markieren</button></div>${[...readerUpdates].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).map(x=>{const isRead=readerUpdateReads.has(x.id);return `<article class="fx-inbox-item ${isRead?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${isRead?'':'<span class="fx-unread-dot" aria-label="Ungelesen"></span>'}</div><strong>${esc(bellDateText(x.title))}</strong><p>${esc(bellDateText(noticeText(x).body))}</p><div class="fx-inbox-item-bottom"><small>${esc(bellTimestamp(x.created_at))}</small>${isRead?'<small>Gelesen</small>':`<button type="button" class="smallbtn" data-reader-read="${esc(x.id)}" ${readerReadBusy?'disabled':''}>Gelesen</button>`}</div></article>`;}).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</section>`;
 }
 let readerInboxOpen=false,readerReadBusy=false;
 async function readerMarkRead(ids){

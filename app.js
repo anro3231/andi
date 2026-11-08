@@ -47,7 +47,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "3.29.1";
+const APP_VERSION = window.FX_VERSION || "3.29.2";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -225,6 +225,19 @@ async function fxLoadAlerts(force=false){
 let fxNewAlerts=[];
 async function fxLoadNewAlerts(){if(!cloudClient||!cloudUser)return;const badgeUser=cloudUser.id;try{const r=await cloudClient.from('fantastix_updates').select('id,kind,title,body,created_at').eq('recipient_member_id','ADMIN').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;const ids=(r.data||[]).map(x=>x.id);let reads=[];if(ids.length){const q=await cloudClient.from('fantastix_update_reads').select('update_id').in('update_id',ids).eq('user_id',cloudUser.id);if(q.error)throw q.error;reads=(q.data||[]).map(x=>x.update_id);}if(cloudUser?.id!==badgeUser)return;fxNewAlerts=(r.data||[]).map(x=>({...x,read_at:reads.includes(x.id)?x.created_at:null}));fxBadgeNewUser=badgeUser;fxSyncIconBadge();}catch(e){console.warn('Neue Meldungen: SQL 20 erforderlich',e.message);}}
 async function fxReadNew(id){if(!cloudClient||!cloudUser)return;const list=id?[id]:fxNewAlerts.filter(x=>!x.read_at).map(x=>x.id);if(list.length){const r=await cloudClient.from('fantastix_update_reads').upsert(list.map(update_id=>({update_id,user_id:cloudUser.id})),{onConflict:'update_id,user_id'});if(r.error)return alert(r.error.message);}await fxLoadNewAlerts();fxOpenInbox();}
+// Dates inside notification text are calendar dates; do not shift them by timezone.
+function bellDateText(value){
+ return String(value??'').replace(/https?:\/\/\S+|\b(\d{4})-(\d{2})-(\d{2})\b|\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/g,(match,y,m,d,day,month,year)=>{
+  if(y)return d+'.'+m+'.'+y;
+  if(year)return day.padStart(2,'0')+'.'+month.padStart(2,'0')+'.'+year;
+  return match;
+ });
+}
+function bellTimestamp(value){
+ if(!value)return '–';
+ const date=new Date(value);if(Number.isNaN(date.valueOf()))return '–';
+ return date.toLocaleString('de-AT',{timeZone:'Europe/Vienna',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
 function fxInboxHTML(){
  function noticeText(x){
   const labels={birthday:'Geburtstag',vote:'Abstimmung',organizer_vote:'Abstimmung zu deinem Termin',organizer_assignment:'Organisator-Zuweisung',fine:'Strafe',paid:'Bezahlte Strafe',vote_reminder:'Abstimmungserinnerung',created:'Neuer Termin',schedule:'Terminänderung',location:'Ortsänderung',deleted:'Termin entfernt',announcement:'Nachricht'};
@@ -242,7 +255,7 @@ function fxInboxHTML(){
 
  const old=fxVisibleLegacyAlerts(), fresh=fxNewAlerts;
  const ordered=[...fresh.map(x=>({x,isNew:true})),...old.map(x=>({x,isNew:false}))].sort((a,b)=>(Date.parse(b.x.created_at)||0)-(Date.parse(a.x.created_at)||0));
- const item=(x,isNew)=>`<article class="fx-inbox-item ${x.read_at?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${!x.read_at?'<span class="fx-unread-dot" aria-label="Ungelesen"></span>':''}</div><strong>${esc(x.title)}</strong><p>${esc(noticeText(x).body)}</p><div class="fx-inbox-item-bottom"><small>${esc(new Date(x.created_at).toLocaleString('de-AT'))}</small>${!x.read_at?`<button class="smallbtn" data-action="${isNew?'fx-new-read':'fx-read'}" data-id="${Number(x.id)}" type="button">Gelesen</button>`:''}</div></article>`;
+ const item=(x,isNew)=>`<article class="fx-inbox-item ${x.read_at?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${!x.read_at?'<span class="fx-unread-dot" aria-label="Ungelesen"></span>':''}</div><strong>${esc(bellDateText(x.title))}</strong><p>${esc(bellDateText(noticeText(x).body))}</p><div class="fx-inbox-item-bottom"><small>${esc(bellTimestamp(x.created_at))}</small>${!x.read_at?`<button class="smallbtn" data-action="${isNew?'fx-new-read':'fx-read'}" data-id="${Number(x.id)}" type="button">Gelesen</button>`:''}</div></article>`;
  return `<div class="fx-inbox-content"><div class="fx-inbox-head"><h2>🔔 Benachrichtigungen</h2><button class="close" data-action="close" aria-label="Schließen" type="button">×</button></div><div class="fx-inbox-summary"><span>${fxAlertCount()} ungelesen · ${fresh.length+old.length} Meldungen</span><button class="smallbtn" data-action="fx-read-all" type="button" ${fxAlertCount()?'':'disabled'}>Alle als gelesen</button></div>${ordered.map(({x,isNew})=>item(x,isNew)).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</div>`;
 }
 async function fxOpenInbox(){await Promise.all([fxLoadAlerts(true),fxLoadNewAlerts()]);modal('Benachrichtigungen',fxInboxHTML());}
