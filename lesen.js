@@ -307,9 +307,9 @@ function excursionDetails(id){
  return `${readerEntryBack('Events')}${heading('Event')}${excursionVoteError?`<div class="notice warning">${esc(excursionVoteError)}</div>`:''}
  ${sorted.length?sorted.map(x=>{const own=excursionOwn(x),completed=x.completed||(x.date&&tripLastDate(x)<today());return `<section class="card excursion-card"><div class="row"><h2>${esc(x.title)}</h2>${termStatusHTML(eventStatus(x))}</div>
  ${ownEventIds.has(x.id)?`<button class="ghost member-event-edit" type="button" data-member-event-edit="${esc(x.id)}">Event bearbeiten</button>`:''}<p class="muted">${tripDateLabel(x)}</p>${x.location?`<p><strong>${esc(x.location)}</strong></p>`:''}${x.notes?`<p class="muted">${esc(x.notes)}</p>`:''}<p class="muted tiny">Organisatoren: ${esc(tripOrganizers(x))}</p>
- <div class="vote-panel"><div class="vote-header"><strong>Meine Rückmeldung</strong><span class="chip ${own?.status==='yes'?'yes-chip':own?.status==='no'?'no-chip':own?.status==='unsure'?'gray':'gray'}">${voteStatusHTML(own?.status)}</span></div>
+ <div class="vote-panel"><div class="vote-header"><strong>Deine Teilnahme</strong>${completed?'<span class="chip gray">Abstimmung geschlossen</span>':''}</div>
  <div class="vote-actions">${[['yes','👍','Dabei','yes'],['unsure','❓','Unsicher','unsure'],['no','👎','Nicht dabei','no']].map(([value,emoji,label,tone])=>`<button type="button" class="vote-btn ${own?.status===value?'selected '+tone:''}" data-excursion-vote="${value}" data-excursion-id="${esc(x.id)}" aria-label="${label}" title="${label}" aria-pressed="${own?.status===value}" ${completed||busy||!!excursionVoteError?'disabled':''}>${emoji}</button>`).join('')}</div>
- <small class="muted">${'Unverbindliche Planung · Keine Auswirkung auf die Rangliste oder Strafen'}</small></div>${excursionRoster(x)}</section>`}).join(''):empty('Noch keine Events eingetragen.')}`;
+ ${!own?.status?'<small class="muted">Noch offen</small>':''}</div>${excursionRoster(x)}</section>`}).join(''):empty('Noch keine Events eingetragen.')}`;
 }
 function ranking(){
  if(!section('members'))return empty('Ranglisten sind nicht freigegeben.');
