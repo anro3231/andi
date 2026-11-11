@@ -1,0 +1,72 @@
+/* Standard intentionally has no theme selector: all existing colors stay intact. */
+.reader-theme-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;margin:0;padding:0;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer}
+.reader-theme-toggle svg{width:21px;height:21px;display:block}
+.reader-theme-toggle:focus-visible,.reader-theme-close:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.reader-theme-dialog{box-sizing:border-box;width:min(420px,calc(100vw - 32px));max-height:85dvh;overflow:auto;border:1px solid var(--border);border-radius:20px;padding:20px;background:var(--surface);color:var(--ink)}
+.reader-theme-dialog::backdrop{background:#070d1899}
+.reader-theme-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.reader-theme-heading h2{margin:0;font-size:20px;letter-spacing:-.5px}
+.reader-theme-close{width:38px;height:38px;padding:0;border:1px solid var(--border);border-radius:50%;background:var(--surface);color:var(--ink);font-size:27px;line-height:1}
+.reader-theme-hint{margin:10px 0 18px;color:var(--muted);font-size:13px}
+.reader-theme-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0;border:0;min-width:0}
+.reader-theme-options legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.reader-theme-option{position:relative;display:block;min-width:0;margin:0;padding:9px;border:2px solid var(--border);border-radius:14px;cursor:pointer;font-size:14px}
+.reader-theme-option:has(input:checked){border-color:var(--accent)}
+.reader-theme-option:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.reader-theme-option input{position:absolute;opacity:0;width:1px;min-height:0;height:1px;margin:0;padding:0}
+.reader-theme-name{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-top:8px;font-weight:700}
+.reader-theme-check{visibility:hidden;color:var(--accent)}
+.reader-theme-option:has(input:checked) .reader-theme-check{visibility:visible}
+.reader-theme-option small{display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:400}
+.theme-preview-standard{--preview-bg:#f5f6f8;--preview-surface:#fff;--preview-ink:#191b20;--preview-accent:#c92540}
+.theme-preview-dark{--preview-bg:#10151e;--preview-surface:#1a2330;--preview-ink:#ecf1f8;--preview-accent:#ff8294}
+.theme-preview-blue{--preview-bg:#edf3fa;--preview-surface:#fff;--preview-ink:#172c46;--preview-accent:#245ba7}
+.theme-preview-green{--preview-bg:#eff5f1;--preview-surface:#fff;--preview-ink:#1b3328;--preview-accent:#226a4a}
+.reader-theme-preview{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:12px;min-height:82px;border-radius:8px;background:var(--preview-bg)}
+.theme-preview-heading{grid-column:1/-1;height:5px;width:60%;border-radius:10px;background:var(--preview-ink);align-self:center}
+.theme-preview-card,.theme-preview-accent{height:27px;border-radius:6px;background:var(--preview-surface)}
+.theme-preview-accent{background:var(--preview-accent)}
+/* Color tokens only apply to the reader page and to an explicitly selected variant. */
+:root[data-reader-theme=blue]{color-scheme:light;--ink:#172c46;--muted:#5d718a;--border:#d7e2f0;--bg:#edf3fa;--surface:#fff;--accent:#245ba7;--accent-dark:#194883;--theme-soft:#e5eefc;--theme-tint:#f4f8ff;--theme-hover:#eaf0f8;--theme-hero:#173354}
+:root[data-reader-theme=green]{color-scheme:light;--ink:#1b3328;--muted:#61756a;--border:#d7e5dc;--bg:#eff5f1;--surface:#fff;--accent:#226a4a;--accent-dark:#174e36;--theme-soft:#e1f0e7;--theme-tint:#f5faf7;--theme-hover:#eaf2ed;--theme-hero:#1d4030}
+:root[data-reader-theme=dark]{color-scheme:dark;--ink:#ecf1f8;--muted:#a8b4c6;--border:#344155;--bg:#10151e;--surface:#1a2330;--accent:#ff8294;--accent-dark:#ffa0ae;--danger:#ff99a7;--theme-soft:#3b2633;--theme-tint:#202c3b;--theme-hover:#273446;--theme-hero:#111c2b;--shadow:0 2px 10px #0003}
+html[data-reader-theme] body{background:var(--bg);color:var(--ink)}
+html[data-reader-theme] :is(.card,.metric:not(.beer-countdown),.attendee-block,.readonly-nav,.photo-dialog,.profile-photo-viewer,.reader-bell,dialog){background:var(--surface);color:var(--ink);border-color:var(--border)}
+html[data-reader-theme] :is(input,select,textarea){background:var(--surface);color:var(--ink);border-color:var(--border);outline-color:var(--accent)}
+html[data-reader-theme] :is(.next-card,.vote-panel,.roster-header,.organizer-edit,.photo-picker,.member-event-completed,.notice){background:var(--theme-tint);border-color:var(--border);color:var(--ink)}
+html[data-reader-theme] :is(.ghost,.smallbtn,.readonly-nav .navbutton.active,.ranking-filter.is-active,.chip:not(.meeting-status):not(.yes-chip):not(.no-chip)){background:var(--theme-soft);color:var(--accent)}
+html[data-reader-theme] :is(.button,.cash-hero .button){background:var(--accent);color:#fff}
+html[data-reader-theme] .button:active{background:var(--accent-dark)}
+html[data-reader-theme] :is(.readonly-footer,.reader-entry-info>span,.reader-entry-info small,.roster-header small,.vote-stamp,.meeting-note-visible,.meeting-note-editor,.absence-reason,.fine-reason,.push-status,.push-setup.is-enabled strong){color:var(--muted)}
+html[data-reader-theme] :is(.reader-entry-end,.account-tools summary,.metric .value.green){color:var(--accent)}
+html[data-reader-theme] :is(.reader-entry,.roster-row,.table th,.table td,.fine-table th,.fine-table td,.ranking-filter,.calendar-day){border-color:var(--border)}
+html[data-reader-theme] :is(.vote-btn,.ranking-filter){background:var(--surface);color:var(--ink);border-color:var(--border)}
+html[data-reader-theme] .vote-btn.selected.yes{background:#e4f8ed;color:#0c7644;border-color:#8ecfa8}
+html[data-reader-theme] .vote-btn.selected.no{background:#ffeaed;color:#ad1c36;border-color:#ea9aaa}
+html[data-reader-theme] .vote-btn.selected.unsure{background:#fff4d4;color:#775500;border-color:#cba83c}
+html[data-reader-theme] :is(.photo-close,.photo-viewer-close,.daily-photo-shuffle){background:var(--theme-hover);color:var(--ink)}
+html[data-reader-theme] .daily-photo-surface,html[data-reader-theme] .daily-photo-surface .daily-photo-outgoing{background:var(--theme-hover)}
+html[data-reader-theme] .photo-browse-status{background:var(--surface);color:var(--ink)}
+html[data-reader-theme] .fx-inbox-item{border-color:var(--border)}
+html[data-reader-theme] .fx-inbox-item.unread{background:var(--theme-soft);border-left-color:var(--accent)}
+html[data-reader-theme] .cash-hero{background:var(--theme-hero);border-color:var(--border)}
+html[data-reader-theme=dark] .button,html[data-reader-theme=dark] .cash-hero .button{color:#18202b}
+html[data-reader-theme=dark] :is(.yes-chip,.fine-status.is-paid){background:#173c30;color:#9de0bc}
+html[data-reader-theme=dark] :is(.no-chip,.fine-status.is-unpaid,.danger-btn){background:#482936;color:#ffc1cc}
+html[data-reader-theme=dark] .cash-amount.positive{color:#9de0bc}
+html[data-reader-theme=dark] .cash-amount.negative{color:#ffb7c5}
+html[data-reader-theme] :is(.fxcal-day,.fxcal-arrow){background:var(--surface);color:var(--ink);border-color:var(--border)}
+html[data-reader-theme] :is(.fxcal-legend,.fxcal-weekdays span,.fxcal-info small){color:var(--muted)}
+html[data-reader-theme] .fxcal-other{background:var(--theme-tint);color:var(--muted)}
+html[data-reader-theme] .fxcal-today{border-color:var(--accent)}
+html[data-reader-theme] .fxcal-selected{background:var(--theme-soft);border-color:var(--accent)!important}
+html[data-reader-theme] :is(.fxcal-item,.photo-picker,.photo-gallery img){border-color:var(--border)}
+html[data-reader-theme] .member-photo-placeholder{background:var(--theme-soft);color:var(--accent)}
+html[data-reader-theme=dark] .yes-chip{background:#173c30!important;color:#9de0bc!important}
+html[data-reader-theme=dark] .no-chip{background:#482936!important;color:#ffc1cc!important}
+
+html[data-reader-theme] .reader-bell{background:var(--surface)!important;border-color:var(--border)!important}
+html[data-reader-theme] .readonly-nav .navbutton:not(.active){color:var(--muted)}
+html[data-reader-theme=dark] .reader-bell b{color:#18202b!important}
+html[data-reader-theme] :is(.next-place,.event-organizer,.fx-inbox-item small){color:var(--muted)}
+html[data-reader-theme=dark] .fxcal-event{background:#a8b4c6}
