@@ -12,7 +12,7 @@ function setup(saved,blocked=false,photoState){
  w.eval(source);w.document.querySelector('#reader-app').hidden=false;w.document.querySelector('#content').innerHTML=w.FantastiXReaderSettings.card();return dom;
 }
 const dom=setup(),w=dom.window,d=w.document,root=d.documentElement;
-assert.equal(root.hasAttribute('data-reader-theme'),false);
+assert.equal(root.hasAttribute('data-reader-theme'),false);assert.equal(d.querySelector('[data-reader-photo-state]').textContent,'Wird angezeigt');
 assert.equal(d.querySelector('meta[name="theme-color"]').content,'#151515');
 d.querySelector('#reader-theme-open').click();
 const dialog=d.querySelector('.reader-theme-dialog');
@@ -33,9 +33,9 @@ const blocked=setup(null,true);blocked.window.document.querySelector('#reader-th
 const photoKey='fantastix.reader.daily-photo.device.v1';
 const hide=d.querySelector('[name="reader-photo-visibility"]');assert.equal(hide.getAttribute('role'),'switch');hide.checked=false;hide.dispatchEvent(new w.Event('change',{bubbles:true}));
 const photoReload=setup(null,false,'hidden');assert.equal(photoReload.window.FantastiXReaderSettings.showDailyPhoto(),false);photoReload.window.close();
-assert.equal(w.FantastiXReaderSettings.showDailyPhoto(),false);assert.equal(w.localStorage.getItem(photoKey),'hidden');
+assert.equal(w.FantastiXReaderSettings.showDailyPhoto(),false);assert.equal(d.querySelector('[data-reader-photo-state]').textContent,'Ausgeblendet');assert.equal(w.localStorage.getItem(photoKey),'hidden');
 d.querySelector('#content').innerHTML=w.FantastiXReaderSettings.card();assert.equal(d.querySelector('[name="reader-photo-visibility"]').checked,false);
-const show=d.querySelector('[name="reader-photo-visibility"]');show.checked=true;show.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(w.FantastiXReaderSettings.showDailyPhoto(),true);
+const show=d.querySelector('[name="reader-photo-visibility"]');show.checked=true;show.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(w.FantastiXReaderSettings.showDailyPhoto(),true);assert.equal(d.querySelector('[data-reader-photo-state]').textContent,'Wird angezeigt');assert.doesNotMatch(d.querySelector('#content').textContent,/Wird auf diesem Gerät gespeichert/);
 assert.equal(w.localStorage.length,2);assert.doesNotMatch(fs.readFileSync(__dirname+'/index.html','utf8'),/reader-themes\.(js|css)/);
 const migrated=new JSDOM(html,{url:'https://example.test/',runScripts:'outside-only'}),mw=migrated.window;
 mw.sessionStorage.setItem('fantastix.reader.theme.session.v1','sand');mw.sessionStorage.setItem('fantastix.reader.daily-photo.session.v1','hidden');mw.eval(source);

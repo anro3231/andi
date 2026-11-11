@@ -97,3 +97,5 @@ html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) .readonly-nav 
 html[data-reader-theme=dark] .reader-photo-switch input:not(:checked){background:#475468}
 @media(prefers-reduced-motion:reduce){.reader-photo-switch input,.reader-photo-switch input::after{transition:none}}
 .reader-display-settings>.hint{font-size:11px;color:var(--muted);margin-bottom:0}
+
+.reader-photo-switch-label{display:grid;gap:3px;min-width:0}.reader-photo-switch-label small{color:var(--muted);font-size:12px;font-weight:400}

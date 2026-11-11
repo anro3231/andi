@@ -47,11 +47,12 @@ function open(){
 }
 window.FantastiXReaderSettings={
  showDailyPhoto:()=>photoVisible,
- card:()=>`<section class="card reader-display-settings"><h2>Darstellung</h2><button type="button" class="ghost" id="reader-theme-open" aria-label="Farbschema wählen" aria-haspopup="dialog" aria-expanded="false">Farbschema wählen · <span data-reader-theme-name>${themes.find(t=>t.id===selected).name}</span></button><label class="reader-photo-switch"><span>Bild des Tages</span><input type="checkbox" role="switch" name="reader-photo-visibility" ${photoVisible?'checked':''}></label><p class="hint">Wird auf diesem Gerät gespeichert.</p></section>`
+ card:()=>`<section class="card reader-display-settings"><h2>Darstellung</h2><button type="button" class="ghost" id="reader-theme-open" aria-label="Farbschema wählen" aria-haspopup="dialog" aria-expanded="false">Farbschema wählen · <span data-reader-theme-name>${themes.find(t=>t.id===selected).name}</span></button><label class="reader-photo-switch"><span class="reader-photo-switch-label"><span>Bild des Tages</span><small data-reader-photo-state aria-live="polite">${photoVisible?'Wird angezeigt':'Ausgeblendet'}</small></span><input type="checkbox" role="switch" aria-label="Bild des Tages" name="reader-photo-visibility" ${photoVisible?'checked':''}></label></section>`
 };
 document.addEventListener('change',e=>{
  if(!e.target.matches('input[name="reader-photo-visibility"][type="checkbox"]'))return;
  photoVisible=e.target.checked;
+ for(const status of document.querySelectorAll('[data-reader-photo-state]'))status.textContent=photoVisible?'Wird angezeigt':'Ausgeblendet';
  try{localStorage.setItem(photoKey,photoVisible?'shown':'hidden');}catch{}
  for(const card of document.querySelectorAll('.daily-photo-card'))card.hidden=!photoVisible;
 });
