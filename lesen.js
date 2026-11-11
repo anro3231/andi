@@ -140,6 +140,7 @@ const ranks=y=>[...data.members].map(m=>({...m,count:count(m,y)})).sort((a,b)=>b
 function leaders(y){const rows=ranks(y);return rows.length&&rows[0].count>0?rows.filter(m=>m.count===rows[0].count):[];}
 function daysUntil(s){const parts=s?.split('-').map(Number),t=today().split('-').map(Number);if(!parts||parts.length!==3)return null;return Math.max(0,Math.round((Date.UTC(parts[0],parts[1]-1,parts[2])-Date.UTC(t[0],t[1]-1,t[2]))/86400000));}
 function renderGate(msg=''){
+ dismissReaderInbox();
  const bell=$('#reader-bell');if(bell)bell.hidden=true;
  ownEventIds=new Set();if(memberEventDialog?.open)memberEventDialog.close();
  window.FantastiXPhotos?.reset();
@@ -167,8 +168,9 @@ function renderApp(){
  const tabs=[['dashboard','Start','⌂',true],['meetings','Stammtisch','▣',section('meetings')],['excursions','Events','✈',section('excursions')],['calendar','Kalender','▦',section('meetings')||section('excursions')||section('members')],['ranking','Rangliste','★',section('members')],['members','Mitglieder','♙',section('members')],['cash','Kassa','€',section('cash')||section('fines')],['more','Mehr','⋯',true]].filter(t=>t[3]);
  if(!tabs.some(t=>t[0]===tab))tab='dashboard';
  $('#tabs').style?.setProperty('--nav-count',tabs.length);$('#tabs').innerHTML=tabs.map(([id,label,icon])=>`<button type="button" class="navbutton ${tab===id?'active':''}" data-tab="${id}" aria-label="${label}"><span class="tab-icon">${window.FantastixUI?.icon(id==='dashboard'?'home':id==='cash'?'fines':id)||esc(icon)}</span><span>${esc(label)}</span></button>`).join('');
- $('#content').innerHTML=(readerInboxOpen?readerInbox():'')+({dashboard,meetings,excursions,calendar:calendarPage,ranking,members,cash,more:morePage}[tab])();
+ $('#content').innerHTML=({dashboard,meetings,excursions,calendar:calendarPage,ranking,members,cash,more:morePage}[tab])();
  const bell=$('#reader-bell');if(bell){const count=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;bell.innerHTML=readerBellIcon()+(count?`<b>${count}</b>`:'');bell.hidden=false;}
+ paintReaderInbox();
  $('#updated').textContent='Stand: '+dateTime(lastFetched||data.publishedAt);
  window.FantastiXPhotos?.configure({context:()=>({client:cloud,user,admin:false})});
  window.FantastiXPhotos?.hydrate();
@@ -210,8 +212,8 @@ function dashboard(){
  ${strongestStreakHTML()}`;
 }
 function voteChoiceContent(symbol,label){
- const name={present:'check',yes:'check',unsure:'question',absent:'close',no:'close'}[symbol];
- return `<span class="vote-choice-icon" aria-hidden="true">${window.FantastixUI?.icon(name)||esc({check:'✓',question:'?',close:'×'}[name])}</span><span class="vote-choice-label">${esc(label)}</span>`;
+ const name={present:'thumbsUp',yes:'thumbsUp',unsure:'question',absent:'thumbsDown',no:'thumbsDown'}[symbol];
+ return `<span class="vote-choice-icon" aria-hidden="true">${window.FantastixUI?.icon(name)||esc({thumbsUp:'👍',question:'?',thumbsDown:'👎'}[name])}</span><span class="vote-choice-label">${esc(label)}</span>`;
 }
 function showVotePending(kind,id,status){
  // Keep the existing button nodes alive so press/color transitions can finish.
@@ -386,9 +388,14 @@ function readerInbox(){
   return {label,body:`Zu „${title}“: ${body}.`};
  }
  const unread=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;
- return `<section class="card fx-reader-inbox fx-inbox-content"><div class="fx-inbox-head"><h2>🔔 Benachrichtigungen</h2><button type="button" class="smallbtn" id="reader-inbox-close">Schließen</button></div><div class="fx-inbox-summary"><span>${unread} ungelesen · ${readerUpdates.length} Meldungen</span><button type="button" class="smallbtn" id="reader-read-all" ${!unread||readerReadBusy?'disabled':''}>Alle als gelesen markieren</button></div>${[...readerUpdates].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).map(x=>{const isRead=readerUpdateReads.has(x.id);return `<article class="fx-inbox-item ${isRead?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${isRead?'':'<span class="fx-unread-dot" aria-label="Ungelesen"></span>'}</div><strong>${esc(bellDateText(x.title))}</strong><p>${esc(bellDateText(noticeText(x).body))}</p><div class="fx-inbox-item-bottom"><small>${esc(bellTimestamp(x.created_at))}</small>${isRead?'<small>Gelesen</small>':`<button type="button" class="smallbtn" data-reader-read="${esc(x.id)}" ${readerReadBusy?'disabled':''}>Gelesen</button>`}</div></article>`;}).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</section>`;
+ return `<section class="card fx-reader-inbox fx-inbox-content"><div class="fx-inbox-head"><h2>Benachrichtigungen</h2><button type="button" class="close" id="reader-inbox-close" data-inbox-close aria-label="Schließen">×</button></div><div class="fx-inbox-summary"><span>${unread} ungelesen · ${readerUpdates.length} Meldungen</span><button type="button" class="smallbtn" id="reader-read-all" ${!unread||readerReadBusy?'disabled':''}>Alle als gelesen markieren</button></div><div class="fx-inbox-list">${[...readerUpdates].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).map(x=>{const isRead=readerUpdateReads.has(x.id);return `<article class="fx-inbox-item ${isRead?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${isRead?'':'<span class="fx-unread-dot" aria-label="Ungelesen"></span>'}</div><strong>${esc(bellDateText(x.title))}</strong><p>${esc(bellDateText(noticeText(x).body))}</p><div class="fx-inbox-item-bottom"><small>${esc(bellTimestamp(x.created_at))}</small>${isRead?'<small>Gelesen</small>':`<button type="button" class="smallbtn" data-reader-read="${esc(x.id)}" ${readerReadBusy?'disabled':''}>Gelesen</button>`}</div></article>`;}).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</div></section>`;
 }
 let readerInboxOpen=false,readerReadBusy=false;
+function dismissReaderInbox(){readerInboxOpen=false;const dialog=$('#reader-inbox-dialog');if(dialog?.open)dialog.close();}
+function paintReaderInbox(open=false){
+ if(!readerInboxOpen)return;
+ window.FantastixUI?.renderInbox($('#reader-inbox-dialog'),readerInbox(),{open,opener:'#reader-bell'});
+}
 async function readerMarkRead(ids){
  if(readerReadBusy||!cloud||!user?.id)return;
  const selected=[...new Set(ids)].filter(id=>readerUpdates.some(x=>x.id===id)&&!readerUpdateReads.has(id));
@@ -648,7 +655,7 @@ async function refreshReaderData(run,background){
   profile=accountResult.data;
   if(!profile?.member_id){data=null;return renderGate();}
   if(pub.error)throw pub.error;if(windows.error)throw windows.error;
-  if(!pub.data?.content){data=null;$('#reader-app').hidden=true;$('#auth-gate').hidden=false;$('#auth-gate').innerHTML=empty('Noch keine Daten für Leser freigegeben.');return;}
+  if(!pub.data?.content){dismissReaderInbox();data=null;$('#reader-app').hidden=true;$('#auth-gate').hidden=false;$('#auth-gate').innerHTML=empty('Noch keine Daten für Leser freigegeben.');return;}
   const d=pub.data.content;
   if(!d.sections||!Array.isArray(d.members)||!Array.isArray(d.meetings)||!Array.isArray(d.fines)||!Array.isArray(d.payments))throw Error('Unbekanntes Datenformat.');
   if(d.excursions!==undefined&&!Array.isArray(d.excursions))throw Error('Ungültige Eventsdaten.');d.excursions=d.excursions||[];
@@ -676,7 +683,7 @@ async function refreshReaderData(run,background){
   if(!readerRefreshCurrent(run))return;
   const denied=[401,403].includes(Number(e.status))||['PGRST301','PGRST302','PGRST303','42501'].includes(e.code);
   if(background&&data&&!denied){console.warn('Hintergrundaktualisierung fehlgeschlagen:',e);$('#updated').textContent='Aktualisierung derzeit nicht möglich · bisheriger Stand bleibt sichtbar.';return;}
-  data=null;$('#reader-app').hidden=true;$('#auth-gate').hidden=false;$('#auth-gate').innerHTML=empty('Laden fehlgeschlagen: '+(e.message||String(e))+' · Bitte erneut öffnen.');
+  dismissReaderInbox();data=null;$('#reader-app').hidden=true;$('#auth-gate').hidden=false;$('#auth-gate').innerHTML=empty('Laden fehlgeschlagen: '+(e.message||String(e))+' · Bitte erneut öffnen.');
  }
 }
 async function doAuth(form){
@@ -724,7 +731,7 @@ async function changePassword(form){
  if(error)return alert('Passwort konnte nicht geändert werden: '+error.message);
  form.reset();alert('Passwort geändert.');
 }
-async function logout(){if(!cloud)return;try{if(pushSupported()){const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub){await cloud.rpc('fantastix_push_unsubscribe',{p_endpoint:sub.endpoint});await unregisterReminderSubscription(sub);await sub.unsubscribe();}}}catch(e){console.warn('Push-Abmeldung:',e);}pushEnabled=false;readerRefreshInFlight=null;readerLastSyncUser=null;readerPushCheckedUser=null;await cloud.auth.signOut();window.FantastiXPhotos?.reset();ownEventIds=new Set();memberEventDialog?.close();user=null;fxSetIconBadge(false);profile=null;data=null;meetingNotes=[];excursionVotes=[];excursionVoteError='';readerUpdates=[];readerUpdateReads=new Set();readerPresence={};notices=[];noticeQueue=[];noticeAcknowledging=false;if($('#notice-dialog')?.open)$('#notice-dialog').close();if($('#push-opt-in-dialog')?.open)$('#push-opt-in-dialog').close();avatarUrls={};birthdays=[];avatarLoadedAt=0;deadlines.clear();readerEntry=null;tab='dashboard';authMode='login';renderGate();}
+async function logout(){dismissReaderInbox();if(!cloud)return;try{if(pushSupported()){const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub){await cloud.rpc('fantastix_push_unsubscribe',{p_endpoint:sub.endpoint});await unregisterReminderSubscription(sub);await sub.unsubscribe();}}}catch(e){console.warn('Push-Abmeldung:',e);}pushEnabled=false;readerRefreshInFlight=null;readerLastSyncUser=null;readerPushCheckedUser=null;await cloud.auth.signOut();window.FantastiXPhotos?.reset();ownEventIds=new Set();memberEventDialog?.close();user=null;fxSetIconBadge(false);profile=null;data=null;meetingNotes=[];excursionVotes=[];excursionVoteError='';readerUpdates=[];readerUpdateReads=new Set();readerPresence={};notices=[];noticeQueue=[];noticeAcknowledging=false;if($('#notice-dialog')?.open)$('#notice-dialog').close();if($('#push-opt-in-dialog')?.open)$('#push-opt-in-dialog').close();avatarUrls={};birthdays=[];avatarLoadedAt=0;deadlines.clear();readerEntry=null;tab='dashboard';authMode='login';renderGate();}
 async function castVote(meetingId,status,reason=''){
  if(busy||!data||!profile?.member_id)return;
  const m=data.meetings.find(x=>x.id===meetingId);if(!m)return;
@@ -799,7 +806,7 @@ document.addEventListener('click',e=>{
  const moreHistory=e.target.closest('[data-member-history-more]');if(moreHistory){const id=moreHistory.dataset.memberHistoryMore;if(readerEntry?.kind==='member'&&readerEntry.id===id&&section('meetings')){memberHistoryLimits.set(id,(memberHistoryLimits.get(id)||10)+10);renderApp();}return;}
  if(e.target.closest('[data-reader-back]')){const from=readerEntry?.from||tab;readerEntry=null;tab=from;renderApp();scrollTo({top:0,behavior:'instant'});return;}
  const readMessage=e.target.closest('[data-reader-read]');if(readMessage){readerReadOne(readMessage.dataset.readerRead);return;}
- if(e.target.closest('#reader-bell')){readerInboxOpen=!readerInboxOpen;renderApp();return;}if(e.target.closest('#reader-inbox-close')){readerInboxOpen=false;renderApp();return;}if(e.target.closest('#reader-read-all')){readerReadAll();return;}
+ if(e.target.closest('#reader-bell')){readerInboxOpen=true;paintReaderInbox(true);return;}if(e.target.closest('#reader-read-all')){readerReadAll();return;}
  const toggle=e.target.closest('#auth-mode-toggle');if(toggle){authMode=authMode==='signup'?'login':'signup';renderGate();return;}
  if(e.target.closest('#reader-logout')){logout();return;}
  if(e.target.closest('#push-opt-in-allow')){$('#push-opt-in-dialog').close();enablePush();return;}
@@ -828,6 +835,7 @@ document.addEventListener('click',e=>{
  }
 });
 $('#notice-dialog').addEventListener('cancel',e=>{e.preventDefault();});
+$('#reader-inbox-dialog')?.addEventListener('close',()=>{readerInboxOpen=false;});
 $('#absence-dialog').addEventListener('close',()=>{showNextNotice();});
 $('#push-opt-in-dialog').addEventListener('close',()=>{showNextNotice();});
 $('#member-notice-dialog').addEventListener('close',()=>{showNextNotice();});

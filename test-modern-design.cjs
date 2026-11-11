@@ -16,7 +16,7 @@ function environment(file){
 
 for(const file of ['app.js','lesen.js']){
  const env=environment(file);env.w.eval(fs.readFileSync(__dirname+'/ui-icons.js','utf8'));
- for(const key of ['home','meetings','excursions','calendar','members','ranking','fines','settings','bell','crown','flame','clock','location','check','question','close']){
+ for(const key of ['home','meetings','excursions','calendar','members','ranking','fines','settings','bell','crown','flame','clock','location','check','question','close','thumbsUp','thumbsDown']){
   const svg=env.w.FantastixUI.icon(key);const parsed=new env.w.DOMParser().parseFromString(svg,'image/svg+xml');assert.equal(parsed.querySelector('parsererror'),null,key+' SVG');
  }
  env.run("data.excursions=[{id:'new-event',title:'Event <Test>',date:'2099-01-01',organizerIds:['a','b'],organizerOther:'Gastwirt & Team'}];");

@@ -41,12 +41,12 @@ run(`readerUpdates=[{id:1,kind:'announcement',title:'Alt',created_at:'2026-10-15
 html=run('readerInbox()');
 assert.ok(html.indexOf('<strong>Neu</strong>')<html.indexOf('<strong>Alt</strong>'));
 const admin=fs.readFileSync(__dirname+'/app.js','utf8');
-vm.runInContext('const esc=x=>String(x??\'\'); const fxVisibleLegacyAlerts=()=>fxAlerts; const fxAlertCount=()=>0; let fxAlerts=[],fxNewAlerts=[];'+admin.slice(admin.indexOf('function fxInboxHTML(){'),admin.indexOf('async function fxOpenInbox()')),vm.createContext({}));
+vm.runInContext('const esc=x=>String(x??\'\'); const fxVisibleLegacyAlerts=()=>fxAlerts; const fxAlertCount=()=>0; let fxAlerts=[],fxNewAlerts=[];'+admin.slice(admin.indexOf('function bellDateText('),admin.indexOf('async function fxOpenInbox()')),vm.createContext({}));
 const inboxCtx=vm.createContext({});
 vm.runInContext(`const esc=x=>String(x??'');const fxAlertCount=()=>0;
  const fxVisibleLegacyAlerts=()=>[{id:1,title:'Mitte',created_at:'2026-10-16T20:30:00Z'}];
  const fxNewAlerts=[{id:1,kind:'vote',title:'Alt',created_at:'2026-10-16T19:00:00Z'},{id:2,kind:'announcement',title:'Neu',created_at:'2026-10-16T21:00:00Z'}];`
- +admin.slice(admin.indexOf('function fxInboxHTML(){'),admin.indexOf('async function fxOpenInbox()')),inboxCtx);
+ +admin.slice(admin.indexOf('function bellDateText('),admin.indexOf('async function fxOpenInbox()')),inboxCtx);
 html=vm.runInContext('fxInboxHTML()',inboxCtx);
 assert.ok(html.indexOf('<strong>Neu</strong>')<html.indexOf('<strong>Mitte</strong>'));
 assert.ok(html.indexOf('<strong>Mitte</strong>')<html.indexOf('<strong>Alt</strong>'));

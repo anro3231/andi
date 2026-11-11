@@ -22,6 +22,8 @@ run("cloud=window.mock;refresh=async()=>{const call=window.calls.at(-1);if(call.
  run("openReaderEntry('meeting','m')");
  const choice=doc.querySelector('[data-vote="unsure"]');
  assert.equal(choice.textContent,'Unsicher');assert.ok(choice.querySelector('svg'));
+ assert.equal(run("voteChoiceContent('present','Dabei')").includes(w.FantastixUI.icon('thumbsUp')),true);
+ assert.equal(run("voteChoiceContent('absent','Nicht dabei')").includes(w.FantastixUI.icon('thumbsDown')),true);
  const pending=run("castVote('m','unsure')");
  assert.equal(doc.querySelector('[data-vote="unsure"]'),choice,'Pending feedback preserves button nodes');
  assert.ok(choice.classList.contains('is-pending'));
