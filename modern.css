@@ -169,3 +169,37 @@ dialog.profile-photo-viewer{background:#111;color:#fff;width:min(92vw,760px);max
 @media(prefers-reduced-motion:reduce){.vote-panel .vote-actions .vote-btn{transition:none}.vote-panel .vote-actions .vote-btn:not(:disabled):active{transform:none}.vote-panel .vote-actions .vote-btn.is-pending .vote-choice-icon{animation:none}}
 /* Standard design: a solid active destination; reader color themes keep their palette. */
 html:not([data-reader-theme]) :is(.fixednav,.readonly-nav) .navbutton.active{background:var(--accent);color:#fff}
+
+/* Shared notification window for members and administrators. */
+dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px));max-width:none;max-height:min(88dvh,760px);margin:auto;padding:0;overflow:hidden;border:1px solid var(--border);border-radius:24px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 24px 80px #10182738}
+.fx-inbox-dialog[open]{animation:inbox-open 220ms cubic-bezier(.2,.8,.2,1) both}
+.fx-inbox-dialog::backdrop{background:#10182775;backdrop-filter:blur(4px);animation:inbox-backdrop 180ms ease both}
+.fx-inbox-dialog.is-closing{animation:inbox-close 160ms ease both;pointer-events:none}
+.fx-inbox-dialog.is-closing::backdrop{animation:inbox-backdrop-out 160ms ease both}
+.fx-inbox-dialog .fx-inbox-content{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:0;max-height:min(88dvh - 2px,758px);margin:0;padding:0;border:0;border-radius:0;background:var(--surface,#fff);box-shadow:none}
+.fx-inbox-dialog .fx-inbox-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:12px;margin:0;padding:20px 20px 12px}
+.fx-inbox-dialog .fx-inbox-head h2{min-width:0;margin:0;font-size:21px;line-height:1.25;font-weight:750;letter-spacing:-.5px;overflow-wrap:anywhere}
+.fx-inbox-dialog .fx-inbox-head .close{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;margin:0;border:1px solid var(--border);border-radius:14px;background:var(--theme-tint,#f5f6f8);color:var(--ink);font-size:26px;transition:background-color 160ms ease,transform 160ms ease}
+.fx-inbox-dialog .fx-inbox-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:0 20px 16px;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5;color:var(--muted)}
+.fx-inbox-dialog .fx-inbox-summary>span{font-variant-numeric:tabular-nums}
+.fx-inbox-dialog .smallbtn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;margin:0;padding:8px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface,#fff);color:var(--accent);font-size:12px;font-weight:650;line-height:1.4;transition:background-color 160ms ease,transform 160ms ease}
+.fx-inbox-dialog button:disabled{opacity:.5;cursor:default}
+.fx-inbox-dialog button:not(:disabled):active{transform:scale(.96)}
+.fx-inbox-dialog button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.fx-inbox-dialog .fx-inbox-list{display:grid;align-content:start;gap:10px;padding:16px 20px 20px;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.fx-inbox-dialog .fx-inbox-item{display:grid;gap:8px;min-width:0;margin:0;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--surface,#fff)}
+.fx-inbox-dialog .fx-inbox-item.unread{border-color:var(--border);border-left:3px solid var(--accent);background:var(--theme-soft,#fff5f7)}
+.fx-inbox-dialog .fx-inbox-item-top,.fx-inbox-dialog .fx-inbox-item-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;min-width:0}
+.fx-inbox-dialog .fx-type{font-size:12px;font-weight:650;color:var(--accent)}
+.fx-inbox-dialog .fx-inbox-item strong{font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.fx-inbox-dialog .fx-inbox-item p{margin:0;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.fx-inbox-dialog .fx-inbox-item small{font-size:12px;line-height:1.5;color:var(--muted)}
+.fx-inbox-dialog .fx-unread-dot{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.fx-inbox-dialog .fx-inbox-list>.muted{margin:0;padding:30px 10px;text-align:center;font-size:14px;line-height:1.6}
+@media(max-width:600px){dialog.fx-inbox-dialog{margin:auto auto max(12px,env(safe-area-inset-bottom))}.fx-inbox-dialog .fx-inbox-head{padding:17px 16px 12px}.fx-inbox-dialog .fx-inbox-head h2{font-size:20px}.fx-inbox-dialog .fx-inbox-summary{padding-inline:16px}.fx-inbox-dialog .fx-inbox-list{padding:14px 16px 16px}}
+@media(hover:hover){.fx-inbox-dialog button:not(:disabled):hover{background:var(--theme-soft,#fff0f3)}}
+@keyframes inbox-open{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes inbox-close{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(10px) scale(.985)}}
+@keyframes inbox-backdrop{from{opacity:0}to{opacity:1}}
+@keyframes inbox-backdrop-out{from{opacity:1}to{opacity:0}}
+@media(prefers-reduced-motion:reduce){.fx-inbox-dialog[open],.fx-inbox-dialog.is-closing,.fx-inbox-dialog::backdrop,.fx-inbox-dialog.is-closing::backdrop{animation:none}.fx-inbox-dialog button{transition:none}.fx-inbox-dialog button:not(:disabled):active{transform:none}}

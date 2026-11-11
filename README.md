@@ -2,6 +2,12 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.1
+
+- Gemeinsames Benachrichtigungsfenster im Lese- und Adminmodus mit einer Überschrift ohne zusätzliches Glockensymbol.
+- Sofortiges Öffnen mit vorhandenem Datenstand, sanfte Übergänge, erhaltene Scrollposition und Tastaturfokus beim Aktualisieren. Escape und Klick auf den Hintergrund schließen das Fenster; reduzierte Bewegung wird berücksichtigt.
+- Teilnahmeauswahl mit Daumen hoch, Fragezeichen und Daumen runter.
+
 ## Version 4.0.0
 
 - Teilnahmeauswahl mit beschrifteten Icons, sanftem Druckfeedback und lokalem Speicherzustand für Stammtische und Events.

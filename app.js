@@ -47,7 +47,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.0.0";
+const APP_VERSION = window.FX_VERSION || "4.0.1";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -214,7 +214,7 @@ function fxSyncIconBadge(){
  const unread=(oldReady&&fxVisibleLegacyAlerts().some(x=>!x.read_at))||(newReady&&fxNewAlerts.some(x=>!x.read_at));
  if(unread||(oldReady&&newReady))return fxSetIconBadge(!!unread);
 }
-function fxAlertButton(){const n=fxAlertCount();return `<button class="fx-bell" type="button" data-action="fx-inbox" aria-label="Benachrichtigungen, ${n} ungelesen" title="Benachrichtigungen">${window.FantastixUI?.icon('bell')||'🔔'}${n?`<span class="fx-bell-count">${n>99?'99+':n}</span>`:''}</button>`;}
+function fxAlertButton(){const n=fxAlertCount();return `<button class="fx-bell" type="button" data-action="fx-inbox" aria-haspopup="dialog" aria-controls="dialog" aria-expanded="${!!$('#dialog')?.open&&!!$('#dialog')?.classList?.contains('fx-inbox-dialog')}" aria-label="Benachrichtigungen, ${n} ungelesen" title="Benachrichtigungen">${window.FantastixUI?.icon('bell')||'🔔'}${n?`<span class="fx-bell-count">${n>99?'99+':n}</span>`:''}</button>`;}
 async function fxLoadAlerts(force=false){
  if(!cloudClient||!cloudUser)return;
  const badgeUser=cloudUser.id;
@@ -224,7 +224,7 @@ async function fxLoadAlerts(force=false){
 }
 let fxNewAlerts=[];
 async function fxLoadNewAlerts(){if(!cloudClient||!cloudUser)return;const badgeUser=cloudUser.id;try{const r=await cloudClient.from('fantastix_updates').select('id,kind,title,body,created_at').eq('recipient_member_id','ADMIN').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;const ids=(r.data||[]).map(x=>x.id);let reads=[];if(ids.length){const q=await cloudClient.from('fantastix_update_reads').select('update_id').in('update_id',ids).eq('user_id',cloudUser.id);if(q.error)throw q.error;reads=(q.data||[]).map(x=>x.update_id);}if(cloudUser?.id!==badgeUser)return;fxNewAlerts=(r.data||[]).map(x=>({...x,read_at:reads.includes(x.id)?x.created_at:null}));fxBadgeNewUser=badgeUser;fxSyncIconBadge();}catch(e){console.warn('Neue Meldungen: SQL 20 erforderlich',e.message);}}
-async function fxReadNew(id){if(!cloudClient||!cloudUser)return;const list=id?[id]:fxNewAlerts.filter(x=>!x.read_at).map(x=>x.id);if(list.length){const r=await cloudClient.from('fantastix_update_reads').upsert(list.map(update_id=>({update_id,user_id:cloudUser.id})),{onConflict:'update_id,user_id'});if(r.error)return alert(r.error.message);}await fxLoadNewAlerts();fxOpenInbox();}
+async function fxReadNew(id){if(!cloudClient||!cloudUser)return;const list=id?[id]:fxNewAlerts.filter(x=>!x.read_at).map(x=>x.id);if(list.length){const r=await cloudClient.from('fantastix_update_reads').upsert(list.map(update_id=>({update_id,user_id:cloudUser.id})),{onConflict:'update_id,user_id'});if(r.error)return alert(r.error.message);}await fxLoadNewAlerts();paintAdminInbox();render();}
 // Dates inside notification text are calendar dates; do not shift them by timezone.
 function bellDateText(value){
  return String(value??'').replace(/https?:\/\/\S+|\b(\d{4})-(\d{2})-(\d{2})\b|\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/g,(match,y,m,d,day,month,year)=>{
@@ -256,9 +256,15 @@ function fxInboxHTML(){
  const old=fxVisibleLegacyAlerts(), fresh=fxNewAlerts;
  const ordered=[...fresh.map(x=>({x,isNew:true})),...old.map(x=>({x,isNew:false}))].sort((a,b)=>(Date.parse(b.x.created_at)||0)-(Date.parse(a.x.created_at)||0));
  const item=(x,isNew)=>`<article class="fx-inbox-item ${x.read_at?'':'unread'}"><div class="fx-inbox-item-top"><span class="fx-type">${esc(noticeText(x).label)}</span>${!x.read_at?'<span class="fx-unread-dot" aria-label="Ungelesen"></span>':''}</div><strong>${esc(bellDateText(x.title))}</strong><p>${esc(bellDateText(noticeText(x).body))}</p><div class="fx-inbox-item-bottom"><small>${esc(bellTimestamp(x.created_at))}</small>${!x.read_at?`<button class="smallbtn" data-action="${isNew?'fx-new-read':'fx-read'}" data-id="${Number(x.id)}" type="button">Gelesen</button>`:''}</div></article>`;
- return `<div class="fx-inbox-content"><div class="fx-inbox-head"><h2>🔔 Benachrichtigungen</h2><button class="close" data-action="close" aria-label="Schließen" type="button">×</button></div><div class="fx-inbox-summary"><span>${fxAlertCount()} ungelesen · ${fresh.length+old.length} Meldungen</span><button class="smallbtn" data-action="fx-read-all" type="button" ${fxAlertCount()?'':'disabled'}>Alle als gelesen</button></div>${ordered.map(({x,isNew})=>item(x,isNew)).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</div>`;
+ return `<div class="fx-inbox-content"><div class="fx-inbox-head"><h2>Benachrichtigungen</h2><button class="close" data-inbox-close aria-label="Schließen" type="button">×</button></div><div class="fx-inbox-summary"><span>${fxAlertCount()} ungelesen · ${fresh.length+old.length} Meldungen</span><button class="smallbtn" data-action="fx-read-all" type="button" ${fxAlertCount()?'':'disabled'}>Alle als gelesen</button></div><div class="fx-inbox-list">${ordered.map(({x,isNew})=>item(x,isNew)).join('')||'<p class="muted">Noch keine Benachrichtigungen.</p>'}</div></div>`;
 }
-async function fxOpenInbox(){await Promise.all([fxLoadAlerts(true),fxLoadNewAlerts()]);modal('Benachrichtigungen',fxInboxHTML());}
+function paintAdminInbox(open=false){window.FantastixUI?.renderInbox($('#dialog'),fxInboxHTML(),{open,opener:'.fx-bell'});}
+async function fxOpenInbox(){
+ const userId=cloudUser?.id;
+ paintAdminInbox(true);
+ await Promise.all([fxLoadAlerts(true),fxLoadNewAlerts()]);
+ if(cloudUser?.id===userId)paintAdminInbox();
+}
 async function fxMarkAlerts(id=null){
  if(!cloudClient||!cloudUser)return;
  let problems=[];
@@ -274,7 +280,7 @@ async function fxMarkAlerts(id=null){
   if(error)problems.push('Ältere Meldungen: '+error.message);
  }
  await Promise.all([fxLoadAlerts(true),fxLoadNewAlerts()]);
- if($('#dialog')?.open)modal('Benachrichtigungen',fxInboxHTML());render();
+ paintAdminInbox();render();
  if(problems.length)alert('Ein Teil der Meldungen konnte nicht als gelesen markiert werden: '+problems.join(' | '));
 }
 function render(force=false){document.querySelector('#nav').style?.setProperty('--nav-count',navItems.length);document.querySelector('#nav').innerHTML=navItems.map(([key,label])=>`<button class="navbutton ${page===key?'active':''}" type="button" data-page="${key}" aria-label="${label}"><span class="tab-icon">${icon(key==='settings'?'more':key)}</span><span>${label}</span></button>`).join('');if(adminEntry&&!force&&$('#admin-entry'))return;const renderers={home:homeHTML,meetings:meetingsHTML,excursions:excursionsHTML,calendar:calendarHTML,members:membersHTML,ranking:rankingHTML,fines:finesHTML,settings:settingsHTML};$('#app').innerHTML=`<header class="top fx-admin-header"><div class="brand"><img class="brand-logo" src="./fantastix-logo.png" alt="FantastiX Logo"><div class="fx-admin-brand-text"><strong>FantastiX</strong><small>Adminmodus · Version ${APP_VERSION}</small></div></div><div class="fx-cloud-head"><button class="fx-cloud-badge" data-page="settings" type="button"><span class="status ${cloudStatus==='connected'?'good':''}"></span>${cloudStatus==='connected'?'Cloud aktiv':'Lokal'}</button>${fxAlertButton()}</div></header>${adminEntry?adminEntryHTML():renderers[page]()}`;window.FantastiXPhotos?.configure({context:()=>({client:cloudClient,user:cloudReady?cloudUser:null,admin:!!(cloudReady&&cloudUser)})});window.FantastiXPhotos?.hydrate();void syncAdminPushPreference().catch(e=>console.warn('Admin-Push-Einstellung:',e.message));}
@@ -558,7 +564,7 @@ function adminBirthdayHTML(id){
  const b=birthdays.find(b=>b.member_id===id),enabled=!!(cloudReady&&cloudUser);
  return `<div class="birthday-editor"><h3>Geburtstag</h3><p class="muted tiny">Tag und Monat, ohne Geburtsjahr. Zum Entfernen beide Felder leeren und das Mitglied speichern.</p>${enabled?'':'<p class="hint">Zum Ändern bitte zuerst mit der Cloud verbinden.</p>'}<div class="birthday-form"><div class="field"><label for="birthday-day">Tag</label><input id="birthday-day" name="birthdayDay" type="number" min="1" max="31" step="1" value="${b?.day||''}" ${enabled?'':'disabled'}></div><div class="field"><label for="birthday-month">Monat</label><select id="birthday-month" name="birthdayMonth" ${enabled?'':'disabled'}><option value="">Monat</option>${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${b?.month===i+1?'selected':''}>${new Date(2000,i,1).toLocaleDateString('de-AT',{month:'long'})}</option>`).join('')}</select></div></div></div>`;
 }
-function modal(title,html){$('#dialog').innerHTML=`<div class="modalbody"><div class="modalhead"><h2>${title}</h2><button type="button" class="close" data-action="close" aria-label="Schließen">×</button></div>${html}</div>`;$('#dialog').showModal();}
+function modal(title,html){$('#dialog').setAttribute('aria-label',title);$('#dialog').classList.remove('fx-inbox-dialog','is-closing');$('#dialog').innerHTML=`<div class="modalbody"><div class="modalhead"><h2>${title}</h2><button type="button" class="close" data-action="close" aria-label="Schließen">×</button></div>${html}</div>`;$('#dialog').showModal();}
 function adminEntryHTML(){return `<button type="button" class="smallbtn reader-entry-back" data-action="admin-entry-back">← Zurück</button>${pageHead('',esc(adminEntry.title),'')}<section class="card admin-entry" id="admin-entry">${adminEntry.html}</section>`;}
 function adminEditorRoot(){return $('#admin-entry')||$('#dialog');}
 function openAdminEntry(title,html,kind,id){
@@ -833,7 +839,7 @@ async function revokeNotice(id){
  if(error)return alert('Zurückziehen fehlgeschlagen: '+error.message);
  await manageNotices();
 }
-function closeModal(){if($('#dialog').open){$('#dialog').close();return;}if(adminEntry){const from=adminEntry.from;adminEntry=null;page=from;render();}}
+function closeModal(){if($('#dialog').open){if($('#dialog').classList.contains('fx-inbox-dialog'))window.FantastixUI.closeInbox($('#dialog'));else $('#dialog').close();return;}if(adminEntry){const from=adminEntry.from;adminEntry=null;page=from;render();}}
 function download(content,name,mime){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);}
 function exportJSON(){download(JSON.stringify(data,null,2),`FantastiX_Backup_${today()}.json`,'application/json;charset=utf-8');}
 async function shareJSON(){const filename=`FantastiX_Backup_${today()}.json`;const file=new File([JSON.stringify(data,null,2)],filename,{type:'application/json'});try{if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'FantastiX Datensicherung'});return;}exportJSON();alert('Dein Browser hat die Sicherung heruntergeladen. Bitte speichere sie über die Dateien-App manuell unter iCloud Drive.');}catch(e){if(e.name!=='AbortError')alert('Teilen fehlgeschlagen: '+(e.message||String(e)));}}
