@@ -2,6 +2,14 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.0
+
+- Teilnahmeauswahl mit beschrifteten Icons, sanftem Druckfeedback und lokalem Speicherzustand für Stammtische und Events.
+- „Nächster Stammtisch“ mit Kalender-, Uhrzeit-, Orts- und Organisator-Icons.
+- Persönliche Begrüßung „Servus, [Name]“ auf der Startseite; ohne Mitgliedszuordnung „Servus“.
+- Aktiver Menüpunkt im Standarddesign rot mit weißer Schrift und weißen Icons. Alternative Farbthemen bleiben erhalten.
+- Fristen und der Pflichtgrund bei Stammtisch-Absagen gelten unverändert. Bei reduzierter Bewegung entfallen Animationen.
+
 ## Website
 
 - `index.html` und `app.js`: Adminmodus.
