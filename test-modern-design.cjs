@@ -16,14 +16,14 @@ function environment(file){
 
 for(const file of ['app.js','lesen.js']){
  const env=environment(file);env.w.eval(fs.readFileSync(__dirname+'/ui-icons.js','utf8'));
- for(const key of ['home','meetings','excursions','calendar','members','ranking','fines','settings','bell','crown','flame']){
+ for(const key of ['home','meetings','excursions','calendar','members','ranking','fines','settings','bell','crown','flame','clock','location','check','question','close']){
   const svg=env.w.FantastixUI.icon(key);const parsed=new env.w.DOMParser().parseFromString(svg,'image/svg+xml');assert.equal(parsed.querySelector('parsererror'),null,key+' SVG');
  }
  env.run("data.excursions=[{id:'new-event',title:'Event <Test>',date:'2099-01-01',organizerIds:['a','b'],organizerOther:'Gastwirt & Team'}];");
  env.run(file==='app.js'?"page='home';render()":"tab='dashboard';renderApp()");
  const event=env.doc.querySelector('.excursion-preview');assert.ok(event);assert.match(event.querySelector('.event-organizer').textContent,/Anna <A>.*Berta.*Gastwirt & Team/);assert.equal(event.querySelector('.event-organizer a'),null);
  assert.match(event.querySelector('.meeting-status').textContent,/Geplant/);assert.ok(event.querySelector('.event-date').textContent.includes('2099'));
- assert.equal(env.doc.querySelectorAll('.next-card .dashboard-open').length,1);assert.equal(env.doc.querySelectorAll('.navinner svg').length,file==='app.js'?8:7);
+ assert.equal(env.doc.querySelectorAll('.next-card .dashboard-open').length,1);assert.equal(env.doc.querySelectorAll('.navinner svg').length,8);
  assert.ok(env.doc.querySelector(`link[href="./modern.css?v=${appVersion}"]`));assert.ok(fs.readFileSync(__dirname+'/'+(file==='app.js'?'index.html':'lesen.html'),'utf8').includes('./ui-icons.js?v='+appVersion));
  if(file==='lesen.js'){env.run("data.sections.excursions=false;renderApp()");assert.equal(env.doc.querySelector('.excursion-preview'),null);}
  env.run("avatarUrls={a:'https://example.test/anna.jpg'};");

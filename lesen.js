@@ -196,18 +196,34 @@ function dashboard(){
  const yr=section('members')?leaders(currentYear()):[],all=section('members')?leaders(null):[];
  const pending=section('fines')?data.fines.reduce((s,f)=>s+n(f.amountCents),0)-data.payments.reduce((s,p)=>s+n(p.amountCents),0):null;
  const leaderHTML=lst=>lst.length?`<div class="leader-list">${lst.map(m=>`<span>${esc(m.name)}</span>`).join('')}</div><small>${lst[0].count} Teilnahmen</small>`:'<div class="value">–</div>';
- return `${heading('Dashboard')}<div class="metric-grid dashboard-v36">
+ return `${heading('Servus'+(member(profile?.member_id)?.name?', '+member(profile.member_id).name:''))}<div class="metric-grid dashboard-v36">
   <div class="metric beer-countdown ${days===0?'beer-today':''}">${days===0?'<div class="value">Heute gibt es Lecker Bierchen! 🍺</div>':`<small>Lecker Bierchen <span class="beer-symbol" aria-hidden="true">🍺</span></small><div class="value">${days===null?'–':days===1?'1 Tag':days+' Tage'}</div><small>bis zum nächsten Stammtisch</small>`}</div>
   <div class="metric"><small>Kontostand ${uiSymbol('fines','💰')}</small><div class="value balance-tile">${section('cash')?money(data.cashbook?.balanceCents):'–'}</div><small>Offene Strafen: ${pending!==null?money(Math.max(0,pending)):'–'}</small></div>
   <div class="metric"><small>Ewige Rangliste ${uiSymbol('crown','👑')}</small>${leaderHTML(all)}</div>
   <div class="metric"><small>Jahresführung ${currentYear()}</small>${leaderHTML(yr)}</div>
  </div>
  <section class="card next-card"><div class="row"><h2>Nächster Stammtisch</h2>${next?termStatusHTML(days===0?'Heute':'Geplant'):'<span class="chip gray">Nicht geplant</span>'}</div>
- ${next?`<strong class="next-date">${dateLabel(next.date)}</strong><p class="next-place">${esc(next.location||'Gasthaus noch offen')} · ${esc(timeLabel(next.time))} Uhr</p>${voteCountdownHTML(deadlines.has(next.id)?new Date(deadlines.get(next.id)).getTime():null)}<p class="muted tiny">Organisator: ${esc(memberName(next.organizerId))}</p>${section('members')?`${dashboardAttendanceHTML(next)}`:``}<button type="button" class="button dashboard-open" data-reader-meeting="${esc(next.id)}">Stammtisch öffnen →</button>`:'<p class="muted">Noch kein nächster Stammtisch eingetragen.</p>'}</section>
+ ${next?`<div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date">${dateLabel(next.date)}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${esc(timeLabel(next.time))} Uhr</span><span>${uiSymbol('location','⌖')}${esc(next.location||'Gasthaus noch offen')}</span></div>${voteCountdownHTML(deadlines.has(next.id)?new Date(deadlines.get(next.id)).getTime():null)}<p class="next-organizer">${uiSymbol('members','♙')}<span>Organisator: ${esc(memberName(next.organizerId))}</span></p>${section('members')?`${dashboardAttendanceHTML(next)}`:``}<button type="button" class="button dashboard-open" data-reader-meeting="${esc(next.id)}">Stammtisch öffnen →</button>`:'<p class="muted">Noch kein nächster Stammtisch eingetragen.</p>'}</section>
  ${window.FantastiXReaderSettings?.showDailyPhoto()===false?'':window.FantastiXPhotos?.card()||''}
  <section class="card"><h2>Letzte 3 Stammtische</h2>${completed.slice(0,3).length?completed.slice(0,3).map(m=>`<div class="item"><div class="avatar">${esc(m.date.slice(-2))}</div><div class="details"><strong>${dateLabel(m.date)}</strong><small>${esc(m.location||'Ohne Gasthaus')} · ${data.members.filter(p=>effective(m,p.id)?.status==='present').length} anwesend</small></div></div>`).join(''):'<p class="muted">Noch keine Stammtische.</p>'}</section>
  ${section('excursions')?`<section class="card excursion-preview"><div class="row"><h2>Nächster Event</h2>${nextTrip()?termStatusHTML(eventStatus(nextTrip())):'<span class="chip gray">Nicht geplant</span>'}</div>${nextTrip()?`<strong class="excursion-title">${esc(nextTrip().title)}</strong><p class="event-date">${tripDateLabel(nextTrip())}</p><p class="event-organizer">Organisatoren: ${esc(tripOrganizers(nextTrip()))}</p><button class="ghost" data-reader-excursion="${esc(nextTrip().id)}" type="button">Öffnen →</button>`:'<p class="muted">Noch kein Event geplant.</p>'}</section>`:''}
  ${strongestStreakHTML()}`;
+}
+function voteChoiceContent(symbol,label){
+ const name={present:'check',yes:'check',unsure:'question',absent:'close',no:'close'}[symbol];
+ return `<span class="vote-choice-icon" aria-hidden="true">${window.FantastixUI?.icon(name)||esc({check:'✓',question:'?',close:'×'}[name])}</span><span class="vote-choice-label">${esc(label)}</span>`;
+}
+function showVotePending(kind,id,status){
+ // Keep the existing button nodes alive so press/color transitions can finish.
+ for(const button of document.querySelectorAll('[data-vote],[data-excursion-vote]')){
+  button.disabled=true;
+  const matches=kind==='meeting'?button.dataset.meetingId===id&&button.dataset.vote===status:button.dataset.excursionId===id&&button.dataset.excursionVote===status;
+  if(matches){
+   button.classList.add('is-pending');button.setAttribute('aria-busy','true');
+   const panel=button.closest('.vote-panel');
+   if(panel){const feedback=panel.querySelector('.vote-feedback');if(feedback)feedback.textContent='Rückmeldung wird gespeichert …';}
+  }
+ }
 }
 function votePanel(m,compact=false){
  if(!profile?.member_id||!section('meetings'))return '';
@@ -217,7 +233,7 @@ function votePanel(m,compact=false){
  const status=own?.status||'';
  const summary=closed?'Abstimmung geschlossen':`Frist: ${deadlineLabel(deadline)}`;
  return `<div class="vote-panel ${compact?'compact':''}"><div class="vote-header"><strong>Deine Teilnahme</strong><span class="chip ${locked||closed?'gray':''}">${esc(summary)}</span></div>
- <div class="vote-actions">${[['present','👍','Dabei','yes'],['unsure','❓','Unsicher','unsure'],['absent','👎','Nicht dabei','no']].map(([value,emoji,label,tone])=>`<button type="button" class="vote-btn ${status===value?'selected '+tone:''}" data-vote="${value}" data-meeting-id="${esc(m.id)}" aria-label="${label}" title="${label}" aria-pressed="${status===value}" ${locked||closed||busy?'disabled':''}>${emoji}</button>`).join('')}</div>
+ <div class="vote-actions">${[['present','Dabei','yes'],['unsure','Unsicher','unsure'],['absent','Nicht dabei','no']].map(([value,label,tone])=>`<button type="button" class="vote-btn ${status===value?'selected '+tone:''}" data-vote="${value}" data-meeting-id="${esc(m.id)}" aria-label="${label}" title="${label}" aria-pressed="${status===value}" ${locked||closed||busy?'disabled':''}>${voteChoiceContent(value,label)}</button>`).join('')}</div><p class="vote-feedback" role="status" aria-live="polite"></p>
  ${['present','unsure'].includes(status)&&meetingNoteEditable(m)?`<div class="meeting-note-editor"><label class="note-input-label" for="meeting-note-${esc(m.id)}">Notiz hinzufügen (optional)</label><div class="meeting-note-fields"><input id="meeting-note-${esc(m.id)}" class="meeting-note-input" data-meeting-note="${esc(m.id)}" maxlength="160" value="${esc(meetingNoteDisplay(m,profile.member_id))}" placeholder="z. B. Komme etwas später"><button type="button" class="smallbtn" data-save-meeting-note="${esc(m.id)}" ${busy?'disabled':''}>Speichern</button></div></div>`:''}
  ${!status?'<small class="muted">Noch offen</small>':status==='absent'&&section('absences')&&own.reason?`<small class="muted">Grund: ${esc(own.reason)}</small>`:''}</div>`;
 }
@@ -309,7 +325,7 @@ function excursionDetails(id){
  ${sorted.length?sorted.map(x=>{const own=excursionOwn(x),completed=x.completed||(x.date&&tripLastDate(x)<today());return `<section class="card excursion-card"><div class="row"><h2>${esc(x.title)}</h2>${termStatusHTML(eventStatus(x))}</div>
  ${ownEventIds.has(x.id)?`<button class="ghost member-event-edit" type="button" data-member-event-edit="${esc(x.id)}">Event bearbeiten</button>`:''}<p class="muted">${tripDateLabel(x)}</p>${x.location?`<p><strong>${esc(x.location)}</strong></p>`:''}${x.notes?`<p class="muted">${esc(x.notes)}</p>`:''}<p class="muted tiny">Organisatoren: ${esc(tripOrganizers(x))}</p>
  <div class="vote-panel"><div class="vote-header"><strong>Deine Teilnahme</strong>${completed?'<span class="chip gray">Abstimmung geschlossen</span>':''}</div>
- <div class="vote-actions">${[['yes','👍','Dabei','yes'],['unsure','❓','Unsicher','unsure'],['no','👎','Nicht dabei','no']].map(([value,emoji,label,tone])=>`<button type="button" class="vote-btn ${own?.status===value?'selected '+tone:''}" data-excursion-vote="${value}" data-excursion-id="${esc(x.id)}" aria-label="${label}" title="${label}" aria-pressed="${own?.status===value}" ${completed||busy||!!excursionVoteError?'disabled':''}>${emoji}</button>`).join('')}</div>
+ <div class="vote-actions">${[['yes','Dabei','yes'],['unsure','Unsicher','unsure'],['no','Nicht dabei','no']].map(([value,label,tone])=>`<button type="button" class="vote-btn ${own?.status===value?'selected '+tone:''}" data-excursion-vote="${value}" data-excursion-id="${esc(x.id)}" aria-label="${label}" title="${label}" aria-pressed="${own?.status===value}" ${completed||busy||!!excursionVoteError?'disabled':''}>${voteChoiceContent(value,label)}</button>`).join('')}</div><p class="vote-feedback" role="status" aria-live="polite"></p>
  ${!own?.status?'<small class="muted">Noch offen</small>':''}</div>${excursionRoster(x)}</section>`}).join(''):empty('Noch keine Events eingetragen.')}`;
 }
 function ranking(){
@@ -716,7 +732,7 @@ async function castVote(meetingId,status,reason=''){
  if(!deadline||Date.now()>=new Date(deadline).getTime())return alert('Die Abstimmungsfrist ist abgelaufen.');
  const own=effective(m,profile.member_id);
  if(status==='absent'&&!reason.trim())return alert('Bitte einen Grund eintragen.');
- busy=true;renderApp();
+ busy=true;showVotePending('meeting',meetingId,status);
  try{
    const {error}=await cloud.rpc('fantastix_cast_vote',{
      p_meeting_id:meetingId,p_status:status,p_reason:status==='absent'?reason.trim():''
@@ -744,7 +760,7 @@ async function voteExcursion(id,status){
  const trip=data.excursions.find(x=>x.id===id);if(!trip||trip.completed||(trip.date&&tripLastDate(trip)<today()))return alert('Dieser Event ist nicht mehr zur Anmeldung offen.');
  if(!['yes','no','unsure'].includes(status))return;
  
- busy=true;renderApp();
+ busy=true;showVotePending('excursion',id,status);
  try{
    const {error}=await cloud.rpc('fantastix_excursion_vote',{p_excursion_id:id,p_status:status});
    if(error)throw error;

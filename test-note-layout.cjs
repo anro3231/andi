@@ -39,7 +39,7 @@ run(`cloudUser={id:'admin'};cloudClient={from:()=>({select:()=>({eq:mockNotes})}
  assert.ok(parent.children.indexOf(note)>parent.children.indexOf(stamp));
  const reader=vm.createContext({window:{}});
  vm.runInContext(fs.readFileSync(__dirname+'/lesen.js','utf8').split("document.addEventListener('submit'")[0],reader);
- vm.runInContext(`profile={member_id:'a'};data={sections:{meetings:true}};deadlines=new Map([['m','2099-01-01T00:00:00Z']]);m={id:'m',attendance:{a:{status:'present'}}};`,reader);
+ vm.runInContext(`profile={member_id:'a'};data={sections:{meetings:true}};deadlines=new Map([['m','2099-01-01T00:00:00Z']]);m={id:'m',date:'2099-01-01',attendance:{a:{status:'present'}}};`,reader);
  let panel=vm.runInContext('votePanel(m)',reader);
  assert.match(panel,/<div class="meeting-note-editor"><label[^>]+>Notiz hinzufügen \(optional\)<\/label>/);
  assert.doesNotMatch(panel,/<details/);
