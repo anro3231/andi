@@ -34,7 +34,15 @@ for(const count of [10,20,26]){
 reader.run("openReaderEntry('member','b')");assert.equal(reader.doc.querySelectorAll('.member-history .item').length,10);
 reader.run("readerEntry=null;tab='members';renderApp()");
 assert.match(reader.doc.querySelector('[data-reader-member="a"] strong').textContent,/Nr. 12 · Anna <A>/);assert.equal(reader.doc.querySelector('[data-reader-member="b"] strong').textContent,'Berta');
-assert.equal(reader.doc.querySelector('#content > section:last-child h2').textContent,'Nachricht an alle');
+assert.equal(reader.doc.querySelector('#content #member-notice-open'),null);assert.equal(reader.doc.querySelector('.photo-upload-input'),null);
+reader.run("refresh=async()=>{}");reader.doc.querySelector('[data-tab="more"]').click();
+assert.equal(reader.run('tab'),'more');
+assert.deepEqual([...reader.doc.querySelectorAll('#tabs [data-tab]')].map(b=>b.dataset.tab),['dashboard','meetings','excursions','calendar','ranking','members','cash','more']);
+assert.equal(reader.doc.querySelectorAll('#member-notice-open').length,1);assert.equal(reader.doc.querySelectorAll('.photo-upload-input').length,1);assert.equal(reader.doc.querySelectorAll('.push-setup').length,1);
+assert.deepEqual([...reader.doc.querySelectorAll('#content>.card h2')].map(h=>h.textContent),['Nachricht an alle','Profilbild ändern','Mitteilungen']);
+reader.w.moreActions=[];reader.run("openMemberNotice=()=>window.moreActions.push('notice');enablePush=()=>window.moreActions.push('push');deleteMyPhoto=()=>window.moreActions.push('delete');pushSupported=()=>true;pushPermission=()=> 'granted';avatarUrls.a='https://example.test/avatar.jpg';renderApp()");
+reader.doc.querySelector('#member-notice-open').click();reader.doc.querySelector('#push-enable').click();reader.doc.querySelector('#delete-my-photo').click();assert.deepEqual([...reader.w.moreActions],['notice','push','delete']);
+assert.doesNotMatch(reader.run('dashboard()'),/push-setup|push-enable|push-disable/);
 for(const env of [admin,reader]){
  const get=(page)=>env.run(env===admin?(page==='meetings'?'meetingsHTML()':'excursionsHTML()'):(page==='meetings'?'readerEntry=null;meetings()':'readerEntry=null;excursions()'));
  const root=env.doc.createElement('div');root.innerHTML=get('meetings');const meet=id=>root.querySelector(env===admin?`[data-action="meeting-edit"][data-id="${id}"]`:`[data-reader-meeting="${id}"]`);

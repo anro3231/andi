@@ -123,7 +123,7 @@ dialog.profile-photo-viewer{background:#111;color:#fff;width:min(92vw,760px);max
 .readonly-nav .navbutton .tab-icon{display:flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px}
 .readonly-nav .navbutton>span:last-child{display:block;flex:0 0 auto;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:13px}
 .readonly-shell{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
-@media(max-width:480px){
+@media(max-width:560px){
  .readonly-nav .navinner{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:3px}
  .readonly-nav .navinner:has(.navbutton:nth-child(7):last-child){grid-template-columns:repeat(8,minmax(0,1fr))}
  .readonly-nav .navinner:has(.navbutton:nth-child(7):last-child) .navbutton{grid-column:span 2}

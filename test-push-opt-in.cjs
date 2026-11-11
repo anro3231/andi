@@ -17,13 +17,13 @@ function environment(permission='default',supported=true,blockedStorage=false){
 (async()=>{
  let env=environment();env.run('renderApp()');let dlg=env.elements.get('#push-opt-in-dialog');
  assert.equal(dlg.open,true);assert.match(dlg.innerHTML,/push-opt-in-allow/);assert.equal(env.requests(),0,'Never request system permission automatically');
- const dashboard=env.run('dashboard()');assert.ok(dashboard.indexOf('push-setup')>dashboard.indexOf('Stärkste Stammtischserie'));assert.doesNotMatch(env.run('members()'),/push-setup|push-enable|push-disable/);
+ const dashboard=env.run('dashboard()');assert.doesNotMatch(dashboard,/push-setup/);assert.match(env.run('morePage()'),/push-setup/);assert.doesNotMatch(env.run('members()'),/push-setup|push-enable|push-disable/);
  await env.click('#push-opt-in-dismiss');assert.equal(dlg.open,false);env.run('renderApp()');assert.equal(dlg.open,false,'Dismiss is once only');
  env=environment();env.run('renderApp()');assert.equal(env.elements.get('#push-opt-in-dialog')?.open??false,false,'Remembered across reloads');
  env.run("user={id:'other-user'};showPushOptIn()");assert.equal(env.elements.get('#push-opt-in-dialog').open,true,'Separate invitation per account');
- env=environment('granted');env.run('renderApp()');assert.equal(env.elements.get('#push-opt-in-dialog')?.open??false,false);assert.equal(env.requests(),0);assert.match(env.run('dashboard()'),/Gerät noch nicht verbunden/);
- env.run('pushEnabled=true');assert.match(env.run('dashboard()'),/Mitteilungen aktiviert/);
- storage.clear();env=environment('denied');env.run('renderApp()');dlg=env.elements.get('#push-opt-in-dialog');assert.match(dlg.innerHTML,/blockiert/);assert.doesNotMatch(dlg.innerHTML,/push-opt-in-allow/);assert.equal(env.requests(),0);assert.match(env.run('dashboard()'),/Mitteilungen blockiert/);assert.doesNotMatch(env.run('dashboard()'),/id="push-enable"/);
+ env=environment('granted');env.run('renderApp()');assert.equal(env.elements.get('#push-opt-in-dialog')?.open??false,false);assert.equal(env.requests(),0);assert.match(env.run('morePage()'),/Gerät noch nicht verbunden/);
+ env.run('pushEnabled=true');assert.match(env.run('morePage()'),/Mitteilungen aktiviert/);
+ storage.clear();env=environment('denied');env.run('renderApp()');dlg=env.elements.get('#push-opt-in-dialog');assert.match(dlg.innerHTML,/blockiert/);assert.doesNotMatch(dlg.innerHTML,/push-opt-in-allow/);assert.equal(env.requests(),0);assert.match(env.run('morePage()'),/Mitteilungen blockiert/);assert.doesNotMatch(env.run('morePage()'),/id="push-enable"/);
  storage.clear();env=environment('default',false);env.run('renderApp()');dlg=env.elements.get('#push-opt-in-dialog');assert.match(dlg.innerHTML,/Home-Bildschirm/);assert.doesNotMatch(dlg.innerHTML,/push-opt-in-allow/);
  storage.clear();env=environment();env.run("noticeQueue=[{id:1}];renderApp()");assert.equal(env.elements.get('#push-opt-in-dialog').open,false);assert.equal(storage.size,0,'Do not consume invitation while blocked');
  env.run("noticeQueue=[];$('#notice-dialog').open=true");env.run('showPushOptIn()');assert.equal(env.elements.get('#push-opt-in-dialog').open,false);
@@ -31,5 +31,5 @@ function environment(permission='default',supported=true,blockedStorage=false){
  storage.clear();env=environment('default',true,true);env.run('renderApp()');env.elements.get('#push-opt-in-dialog').close();env.run('renderApp()');assert.equal(env.elements.get('#push-opt-in-dialog').open,false,'Session fallback when storage is blocked');
  storage.clear();env=environment();env.run(`cloud={rpc:async()=>({error:null})};activePushRegistration=async()=>({pushManager:{getSubscription:async()=>({toJSON:()=>({endpoint:'https://example.test'})})}});base64UrlToUint8Array=()=>new Uint8Array();renderApp();const realEnablePush=enablePush;let pendingEnable;enablePush=()=>pendingEnable=realEnablePush();`);
  await env.click('#push-opt-in-allow');await env.run('pendingEnable');assert.equal(env.requests(),1,'Permission requested only from explicit click');assert.equal(env.run('pushEnabled'),true);assert.equal(env.elements.get('#push-opt-in-dialog').open,false);
- console.log('PASS push invitation: dashboard placement, member removal, once/account/device, reload/dismiss, granted/denied/unsupported, notice deferral, blocked storage, explicit permission click.');
+ console.log('PASS push invitation: More placement, dashboard/member removal, once/account/device, reload/dismiss, granted/denied/unsupported, notice deferral, blocked storage, explicit permission click.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
