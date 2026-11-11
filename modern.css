@@ -130,3 +130,9 @@ dialog.profile-photo-viewer{background:#111;color:#fff;width:min(92vw,760px);max
  .readonly-nav .navinner:has(.navbutton:nth-child(7):last-child) .navbutton:nth-child(5){grid-column:2/span 2}
  .readonly-shell{padding-bottom:calc(133px + env(safe-area-inset-bottom))}
 }
+/* Admin More: keep actions together, with optional help and local tools collapsed. */
+.admin-more-version{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 17px;color:var(--muted);font-size:12px}
+.admin-more :is(.admin-more-help,.admin-more-details){margin-top:15px;border-top:1px solid var(--border);padding-top:12px}
+.admin-more :is(.admin-more-help,.admin-more-details)>summary{cursor:pointer;font-size:12px;font-weight:650;color:var(--muted);min-height:30px;padding:3px 0}
+.admin-more .admin-more-details>.stack{margin-top:12px}
+.admin-more :is(.admin-more-help,.admin-more-details) .hint{font-size:12px;line-height:1.5}

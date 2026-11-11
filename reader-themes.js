@@ -5,16 +5,21 @@ const themes=[
  {id:'standard',name:'Standard',description:'Aktuelles Design',color:'#151515'},
  {id:'dark',name:'Dunkel',description:'Dunkel & ruhig',color:'#10151e'},
  {id:'blue',name:'Blau',description:'Sanftes Eisblau',color:'#d9e5f4'},
- {id:'green',name:'Grün',description:'Salbei & Creme',color:'#dce5d7'}
+ {id:'green',name:'Grün',description:'Salbei & Creme',color:'#dce5d7'},
+ {id:'violet',name:'Violett',description:'Modern & weich',color:'#eee7f7'},
+ {id:'sand',name:'Sand',description:'Warm & reduziert',color:'#ede4d4'}
 ],key='fantastix.reader.theme.session.v1',root=document.documentElement;
 const meta=document.querySelector('meta[name="theme-color"]'),originalColor=meta?.content;
-let selected='standard',dialog;
+const photoKey='fantastix.reader.daily-photo.session.v1';
+let selected='standard',dialog,photoVisible=true;
+try{photoVisible=sessionStorage.getItem(photoKey)!=='hidden';}catch{}
 try{const saved=sessionStorage.getItem(key);if(themes.some(t=>t.id===saved))selected=saved;}catch{}
 function apply(id){
  const theme=themes.find(t=>t.id===id);if(!theme)return;
  selected=id;
  if(id==='standard')root.removeAttribute('data-reader-theme');else root.dataset.readerTheme=id;
  if(meta)meta.content=id==='standard'?originalColor:theme.color;
+ for(const label of document.querySelectorAll('[data-reader-theme-name]'))label.textContent=theme.name;
 }
 apply(selected);
 function open(){
@@ -34,5 +39,15 @@ function open(){
  if(!dialog.open){dialog.showModal();dialog.querySelector('input:checked')?.focus();}
  document.querySelector('#reader-theme-open')?.setAttribute('aria-expanded','true');
 }
+window.FantastiXReaderSettings={
+ showDailyPhoto:()=>photoVisible,
+ card:()=>`<section class="card reader-display-settings"><h2>Darstellung</h2><button type="button" class="ghost" id="reader-theme-open" aria-label="Farbschema wählen" aria-haspopup="dialog" aria-expanded="false">Farbschema wählen · <span data-reader-theme-name>${themes.find(t=>t.id===selected).name}</span></button><fieldset class="reader-photo-setting"><legend>Bild des Tages</legend><div class="reader-photo-options"><label><input type="radio" name="reader-photo-visibility" value="show" ${photoVisible?'checked':''}>Anzeigen</label><label><input type="radio" name="reader-photo-visibility" value="hide" ${!photoVisible?'checked':''}>Ausblenden</label></div></fieldset><p class="hint">Gilt nur für diese Sitzung.</p></section>`
+};
+document.addEventListener('change',e=>{
+ if(!e.target.matches('input[name="reader-photo-visibility"]')||!['show','hide'].includes(e.target.value))return;
+ photoVisible=e.target.value==='show';
+ try{sessionStorage.setItem(photoKey,photoVisible?'shown':'hidden');}catch{}
+ for(const card of document.querySelectorAll('.daily-photo-card'))card.hidden=!photoVisible;
+});
 document.addEventListener('click',e=>{if(e.target.closest('#reader-theme-open')){e.preventDefault();open();}});
 })();

@@ -1,7 +1,5 @@
 /* Standard intentionally has no theme selector: all existing colors stay intact. */
-.reader-theme-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;margin:0;padding:0;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer}
-.reader-theme-toggle svg{width:21px;height:21px;display:block}
-.reader-theme-toggle:focus-visible,.reader-theme-close:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+#reader-theme-open:focus-visible,.reader-theme-close:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .reader-theme-dialog{box-sizing:border-box;width:min(420px,calc(100vw - 32px));max-height:85dvh;overflow:auto;border:1px solid var(--border);border-radius:20px;padding:20px;background:var(--surface);color:var(--ink)}
 .reader-theme-dialog::backdrop{background:#070d1899}
 .reader-theme-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -80,3 +78,21 @@ html:root[data-reader-theme=green] .readonly-nav{background:#f5f6e9;border-color
 html:root[data-reader-theme=blue] .readonly-nav .navbutton.active{background:#155e9b;color:#fff}
 html:root[data-reader-theme=green] .readonly-nav .navbutton.active{background:#346b52;color:#fff}
 html:is([data-reader-theme=blue],[data-reader-theme=green]) .readonly-nav .navbutton:not(.active){background:transparent;color:var(--muted)}
+.theme-preview-violet{--preview-bg:#eee7f7;--preview-surface:#faf7ff;--preview-ink:#352b48;--preview-accent:#71509e}
+.theme-preview-sand{--preview-bg:#ede4d4;--preview-surface:#fffbf3;--preview-ink:#433528;--preview-accent:#885638}
+:root[data-reader-theme=violet]{color-scheme:light;--ink:#352b48;--muted:#6a587e;--border:#d9cce7;--bg:#eee7f7;--surface:#faf7ff;--accent:#71509e;--accent-dark:#593e7e;--theme-soft:#e5d9f4;--theme-tint:#f0e7fa;--theme-hover:#e7ddf2;--theme-hero:#49315f;--shadow:0 4px 18px #49315f10}
+:root[data-reader-theme=sand]{color-scheme:light;--ink:#433528;--muted:#756047;--border:#decdb5;--bg:#ede4d4;--surface:#fffbf3;--accent:#885638;--accent-dark:#69412a;--theme-soft:#ecddc4;--theme-tint:#f5ead9;--theme-hover:#eee1cc;--theme-hero:#5d4533;--shadow:0 4px 18px #5d453310}
+html:root[data-reader-theme=violet] .next-card{background:#ddd0ef;border-color:transparent}
+html:root[data-reader-theme=sand] .next-card{background:#e4d1b6;border-color:transparent}
+html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) :is(.card,.metric:not(.beer-countdown)){border-color:transparent;box-shadow:var(--shadow)}
+html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) .readonly-nav{background:var(--surface);border-color:transparent}
+html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) .readonly-nav .navbutton.active{background:var(--accent);color:#fff}
+.reader-display-settings #reader-theme-open{width:100%;justify-content:center;flex-wrap:wrap;white-space:normal}
+.reader-photo-setting{min-width:0;border:0;border-top:1px solid var(--border);padding:14px 0 0;margin:18px 0 0}
+.reader-photo-setting legend{float:left;width:100%;padding:0;margin:0 0 10px;font-size:13px;font-weight:650}
+.reader-photo-options{clear:both;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.reader-photo-options label{display:flex;align-items:center;gap:8px;min-height:44px;margin:0;padding:9px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;color:var(--ink)}
+.reader-photo-options input[type=radio]{flex:0 0 18px;width:18px;height:18px;min-height:18px;margin:0;padding:0;accent-color:var(--accent)}
+.reader-photo-options label:has(input:checked){border-color:var(--accent)}
+.reader-photo-options label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.reader-display-settings>.hint{font-size:11px;color:var(--muted);margin-bottom:0}
