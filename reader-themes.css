@@ -99,3 +99,6 @@ html[data-reader-theme=dark] .reader-photo-switch input:not(:checked){background
 .reader-display-settings>.hint{font-size:11px;color:var(--muted);margin-bottom:0}
 
 .reader-photo-switch-label{display:grid;gap:3px;min-width:0}.reader-photo-switch-label small{color:var(--muted);font-size:12px;font-weight:400}
+
+/* The dock keeps its outline and depth in every reader color scheme. */
+html:root[data-reader-theme] .readonly-nav{border-color:var(--border);box-shadow:0 8px 28px #14203326,0 2px 5px #1420330a}
