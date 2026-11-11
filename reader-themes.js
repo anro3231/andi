@@ -4,8 +4,8 @@
 const themes=[
  {id:'standard',name:'Standard',description:'Aktuelles Design',color:'#151515'},
  {id:'dark',name:'Dunkel',description:'Dunkel & ruhig',color:'#10151e'},
- {id:'blue',name:'Blau',description:'Kühl & kontrastreich',color:'#dce8f7'},
- {id:'green',name:'Grün',description:'Warm & natürlich',color:'#e1eadb'}
+ {id:'blue',name:'Blau',description:'Sanftes Eisblau',color:'#d9e5f4'},
+ {id:'green',name:'Grün',description:'Salbei & Creme',color:'#dce5d7'}
 ],key='fantastix.reader.theme.session.v1',root=document.documentElement;
 const meta=document.querySelector('meta[name="theme-color"]'),originalColor=meta?.content;
 let selected='standard',dialog;

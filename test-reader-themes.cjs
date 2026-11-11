@@ -9,7 +9,7 @@ function setup(saved,blocked=false){
  w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};
  if(saved)w.sessionStorage.setItem(key,saved);
  if(blocked)Object.defineProperty(w,'sessionStorage',{get(){throw Error('blocked');}});
- w.eval(source);return dom;
+ w.eval(source);w.document.querySelector('#reader-theme-open').hidden=false;return dom;
 }
 const dom=setup(),w=dom.window,d=w.document,root=d.documentElement;
 assert.equal(root.hasAttribute('data-reader-theme'),false);
