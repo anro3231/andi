@@ -16,10 +16,10 @@ assert.ok(reader.d.querySelector('.reader-display-settings #reader-theme-open'))
 reader.d.querySelector('#reader-theme-open').click();assert.equal(reader.d.querySelectorAll('.reader-theme-dialog input[type=radio]').length,6);reader.d.querySelector('.reader-theme-close').click();
 reader.w.FantastiXPhotos={card:()=>'<section class="card daily-photo-card"><div data-daily-photo></div></section>',configure(){},hydrate(){}};
 assert.match(reader.run('dashboard()'),/daily-photo-card/);
-const hide=reader.d.querySelector('[name=reader-photo-visibility][value=hide]');hide.checked=true;hide.dispatchEvent(new reader.w.Event('change',{bubbles:true}));
+const hide=reader.d.querySelector('[role=switch][name=reader-photo-visibility]');hide.checked=false;hide.dispatchEvent(new reader.w.Event('change',{bubbles:true}));
 assert.doesNotMatch(reader.run('dashboard()'),/daily-photo-card/,'Hidden daily photo is not mounted or fetched');
-reader.run("tab='more';renderApp()");assert.ok(reader.d.querySelector('[name=reader-photo-visibility][value=hide]').checked);
-reader.d.querySelector('[name=reader-photo-visibility][value=show]').click();assert.match(reader.run('dashboard()'),/daily-photo-card/);
+reader.run("tab='more';renderApp()");assert.equal(reader.d.querySelector('[name=reader-photo-visibility]').checked,false);
+reader.d.querySelector('[name=reader-photo-visibility]').click();assert.match(reader.run('dashboard()'),/daily-photo-card/);
 const titles=[...admin.d.querySelectorAll('.admin-more>.card h2')].map(x=>x.textContent);
 assert.deepEqual(titles,['Cloud & Benutzer','Abstimmungen & Nachrichten','Stammtisch-Bilder','Sicherungen & Änderungsverlauf']);
 for(const action of ['cloud-setup','cloud-check','reader-access','vote-settings','notice-new','notice-manage','push-admin','backup-list','audit-list','snapshot-list','share-json','export-json'])assert.equal(admin.d.querySelectorAll('.admin-more [data-action="'+action+'"]').length,1,action);

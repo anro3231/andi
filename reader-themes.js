@@ -1,4 +1,4 @@
-/* Reader-only appearance. Session storage, no account or database writes. */
+/* Reader-only appearance. Device storage, no account or database writes. */
 (()=>{
 'use strict';
 const themes=[
@@ -8,12 +8,18 @@ const themes=[
  {id:'green',name:'Grün',description:'Salbei & Creme',color:'#dce5d7'},
  {id:'violet',name:'Violett',description:'Modern & weich',color:'#eee7f7'},
  {id:'sand',name:'Sand',description:'Warm & reduziert',color:'#ede4d4'}
-],key='fantastix.reader.theme.session.v1',root=document.documentElement;
+],key='fantastix.reader.theme.device.v1',root=document.documentElement;
 const meta=document.querySelector('meta[name="theme-color"]'),originalColor=meta?.content;
-const photoKey='fantastix.reader.daily-photo.session.v1';
+const photoKey='fantastix.reader.daily-photo.device.v1';
 let selected='standard',dialog,photoVisible=true;
-try{photoVisible=sessionStorage.getItem(photoKey)!=='hidden';}catch{}
-try{const saved=sessionStorage.getItem(key);if(themes.some(t=>t.id===saved))selected=saved;}catch{}
+function savedPreference(name,legacy){
+ try{const value=localStorage.getItem(name);if(value!==null)return value;}catch{}
+ try{const value=sessionStorage.getItem(legacy);if(value!==null){try{localStorage.setItem(name,value);}catch{}return value;}}catch{}
+ return null;
+}
+photoVisible=savedPreference(photoKey,'fantastix.reader.daily-photo.session.v1')!=='hidden';
+const saved=savedPreference(key,'fantastix.reader.theme.session.v1');
+if(themes.some(t=>t.id===saved))selected=saved;
 function apply(id){
  const theme=themes.find(t=>t.id===id);if(!theme)return;
  selected=id;
@@ -25,12 +31,12 @@ apply(selected);
 function open(){
  if(!dialog){
   dialog=document.createElement('dialog');dialog.className='reader-theme-dialog';dialog.setAttribute('aria-labelledby','reader-theme-heading');
-  dialog.innerHTML=`<div class="reader-theme-heading"><h2 id="reader-theme-heading">Darstellung</h2><button type="button" class="reader-theme-close" aria-label="Farbauswahl schließen">×</button></div><p class="reader-theme-hint" id="reader-theme-help">Wähle dein Farbschema für diese Sitzung.</p><fieldset class="reader-theme-options" aria-describedby="reader-theme-help"><legend>Farbschema</legend>${themes.map(t=>`<label class="reader-theme-option theme-preview-${t.id}"><input type="radio" name="reader-theme" value="${t.id}"><span class="reader-theme-preview" aria-hidden="true"><span class="theme-preview-heading"></span><span class="theme-preview-card"></span><span class="theme-preview-accent"></span></span><span class="reader-theme-name">${t.name}<span class="reader-theme-check" aria-hidden="true">✓</span></span><small>${t.description}</small></label>`).join('')}</fieldset>`;
+  dialog.innerHTML=`<div class="reader-theme-heading"><h2 id="reader-theme-heading">Darstellung</h2><button type="button" class="reader-theme-close" aria-label="Farbauswahl schließen">×</button></div><p class="reader-theme-hint" id="reader-theme-help">Wähle dein Farbschema für dieses Gerät.</p><fieldset class="reader-theme-options" aria-describedby="reader-theme-help"><legend>Farbschema</legend>${themes.map(t=>`<label class="reader-theme-option theme-preview-${t.id}"><input type="radio" name="reader-theme" value="${t.id}"><span class="reader-theme-preview" aria-hidden="true"><span class="theme-preview-heading"></span><span class="theme-preview-card"></span><span class="theme-preview-accent"></span></span><span class="reader-theme-name">${t.name}<span class="reader-theme-check" aria-hidden="true">✓</span></span><small>${t.description}</small></label>`).join('')}</fieldset>`;
   document.body.appendChild(dialog);
   dialog.querySelector('.reader-theme-close').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('change',e=>{
    if(!e.target.matches('input[name="reader-theme"]'))return;
-   apply(e.target.value);try{sessionStorage.setItem(key,selected);}catch{}
+   apply(e.target.value);try{localStorage.setItem(key,selected);}catch{}
   });
   dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();});
   dialog.addEventListener('close',()=>{const button=document.querySelector('#reader-theme-open');button?.setAttribute('aria-expanded','false');button?.focus();});
@@ -41,12 +47,12 @@ function open(){
 }
 window.FantastiXReaderSettings={
  showDailyPhoto:()=>photoVisible,
- card:()=>`<section class="card reader-display-settings"><h2>Darstellung</h2><button type="button" class="ghost" id="reader-theme-open" aria-label="Farbschema wählen" aria-haspopup="dialog" aria-expanded="false">Farbschema wählen · <span data-reader-theme-name>${themes.find(t=>t.id===selected).name}</span></button><fieldset class="reader-photo-setting"><legend>Bild des Tages</legend><div class="reader-photo-options"><label><input type="radio" name="reader-photo-visibility" value="show" ${photoVisible?'checked':''}>Anzeigen</label><label><input type="radio" name="reader-photo-visibility" value="hide" ${!photoVisible?'checked':''}>Ausblenden</label></div></fieldset><p class="hint">Gilt nur für diese Sitzung.</p></section>`
+ card:()=>`<section class="card reader-display-settings"><h2>Darstellung</h2><button type="button" class="ghost" id="reader-theme-open" aria-label="Farbschema wählen" aria-haspopup="dialog" aria-expanded="false">Farbschema wählen · <span data-reader-theme-name>${themes.find(t=>t.id===selected).name}</span></button><label class="reader-photo-switch"><span>Bild des Tages</span><input type="checkbox" role="switch" name="reader-photo-visibility" ${photoVisible?'checked':''}></label><p class="hint">Wird auf diesem Gerät gespeichert.</p></section>`
 };
 document.addEventListener('change',e=>{
- if(!e.target.matches('input[name="reader-photo-visibility"]')||!['show','hide'].includes(e.target.value))return;
- photoVisible=e.target.value==='show';
- try{sessionStorage.setItem(photoKey,photoVisible?'shown':'hidden');}catch{}
+ if(!e.target.matches('input[name="reader-photo-visibility"][type="checkbox"]'))return;
+ photoVisible=e.target.checked;
+ try{localStorage.setItem(photoKey,photoVisible?'shown':'hidden');}catch{}
  for(const card of document.querySelectorAll('.daily-photo-card'))card.hidden=!photoVisible;
 });
 document.addEventListener('click',e=>{if(e.target.closest('#reader-theme-open')){e.preventDefault();open();}});

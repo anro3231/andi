@@ -88,11 +88,12 @@ html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) :is(.card,.met
 html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) .readonly-nav{background:var(--surface);border-color:transparent}
 html:root:is([data-reader-theme=violet],[data-reader-theme=sand]) .readonly-nav .navbutton.active{background:var(--accent);color:#fff}
 .reader-display-settings #reader-theme-open{width:100%;justify-content:center;flex-wrap:wrap;white-space:normal}
-.reader-photo-setting{min-width:0;border:0;border-top:1px solid var(--border);padding:14px 0 0;margin:18px 0 0}
-.reader-photo-setting legend{float:left;width:100%;padding:0;margin:0 0 10px;font-size:13px;font-weight:650}
-.reader-photo-options{clear:both;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.reader-photo-options label{display:flex;align-items:center;gap:8px;min-height:44px;margin:0;padding:9px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;color:var(--ink)}
-.reader-photo-options input[type=radio]{flex:0 0 18px;width:18px;height:18px;min-height:18px;margin:0;padding:0;accent-color:var(--accent)}
-.reader-photo-options label:has(input:checked){border-color:var(--accent)}
-.reader-photo-options label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.reader-photo-switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:59px;margin:18px 0 0;padding:14px 0 0;border-top:1px solid var(--border);color:var(--ink);font-size:13px;cursor:pointer}
+.reader-photo-switch input[type=checkbox]{position:relative;display:block;flex:0 0 51px;appearance:none;-webkit-appearance:none;width:51px;min-width:51px;max-width:51px;height:31px;min-height:31px;margin:0;padding:0;border:0;border-radius:999px;background:#d2d5dc;cursor:pointer;transition:background-color 160ms ease}
+.reader-photo-switch input::after{content:"";position:absolute;width:25px;height:25px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 2px 4px #0003;transition:transform 160ms ease}
+.reader-photo-switch input:checked{background:#34c759}
+.reader-photo-switch input:checked::after{transform:translateX(20px)}
+.reader-photo-switch input:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+html[data-reader-theme=dark] .reader-photo-switch input:not(:checked){background:#475468}
+@media(prefers-reduced-motion:reduce){.reader-photo-switch input,.reader-photo-switch input::after{transition:none}}
 .reader-display-settings>.hint{font-size:11px;color:var(--muted);margin-bottom:0}

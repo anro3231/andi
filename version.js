@@ -1,2 +1,2 @@
-window.FX_VERSION='3.31';
+window.FX_VERSION='3.31.1';
 window.FANTASTIX_VERSION=window.FX_VERSION;
