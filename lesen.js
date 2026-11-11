@@ -166,7 +166,7 @@ function renderApp(){
  $('#auth-gate').hidden=true;$('#reader-app').hidden=false;
  const tabs=[['dashboard','Start','⌂',true],['meetings','Stammtisch','▣',section('meetings')],['excursions','Events','✈',section('excursions')],['calendar','Kalender','▦',section('meetings')||section('excursions')||section('members')],['ranking','Rangliste','★',section('members')],['members','Mitglieder','♙',section('members')],['cash','Kassa','€',section('cash')||section('fines')],['more','Mehr','⋯',true]].filter(t=>t[3]);
  if(!tabs.some(t=>t[0]===tab))tab='dashboard';
- $('#tabs').style?.setProperty('--nav-count',tabs.length);$('#tabs').innerHTML=tabs.map(([id,label,icon])=>`<button class="navbutton ${tab===id?'active':''}" data-tab="${id}" aria-label="${label}"><span class="tab-icon">${window.FantastixUI?.icon(id==='dashboard'?'home':id==='cash'?'fines':id)||esc(icon)}</span><span>${esc(label)}</span></button>`).join('');
+ $('#tabs').style?.setProperty('--nav-count',tabs.length);$('#tabs').innerHTML=tabs.map(([id,label,icon])=>`<button type="button" class="navbutton ${tab===id?'active':''}" data-tab="${id}" aria-label="${label}"><span class="tab-icon">${window.FantastixUI?.icon(id==='dashboard'?'home':id==='cash'?'fines':id)||esc(icon)}</span><span>${esc(label)}</span></button>`).join('');
  $('#content').innerHTML=(readerInboxOpen?readerInbox():'')+({dashboard,meetings,excursions,calendar:calendarPage,ranking,members,cash,more:morePage}[tab])();
  const bell=$('#reader-bell');if(bell){const count=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;bell.innerHTML=readerBellIcon()+(count?`<b>${count}</b>`:'');bell.hidden=false;}
  $('#updated').textContent='Stand: '+dateTime(lastFetched||data.publishedAt);

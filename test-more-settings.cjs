@@ -11,6 +11,11 @@ function env(admin){
 }
 const admin=env(true),reader=env(false);
 assert.equal(admin.d.querySelector('[data-page=settings] svg').outerHTML,reader.d.querySelector('[data-tab=more] svg').outerHTML,'Same More icon');
+const adminNavigation=[...admin.d.querySelectorAll('#nav .navbutton')],readerNavigation=[...reader.d.querySelectorAll('#tabs .navbutton')];
+assert.deepEqual(adminNavigation.map(b=>b.lastElementChild.textContent),['Start','Stammtisch','Events','Kalender','Rangliste','Mitglieder','Kassa','Mehr']);
+assert.deepEqual(adminNavigation.map(b=>b.lastElementChild.textContent),readerNavigation.map(b=>b.lastElementChild.textContent));
+adminNavigation.forEach((button,i)=>{assert.equal(button.querySelector('.tab-icon').innerHTML,readerNavigation[i].querySelector('.tab-icon').innerHTML);assert.equal(button.type,readerNavigation[i].type);});
+
 assert.equal(reader.d.querySelector('.reader-head-actions #reader-theme-open'),null);
 assert.ok(reader.d.querySelector('.reader-display-settings #reader-theme-open'));
 reader.d.querySelector('#reader-theme-open').click();assert.equal(reader.d.querySelectorAll('.reader-theme-dialog input[type=radio]').length,6);reader.d.querySelector('.reader-theme-close').click();
