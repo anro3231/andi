@@ -140,6 +140,7 @@ const ranks=y=>[...data.members].map(m=>({...m,count:count(m,y)})).sort((a,b)=>b
 function leaders(y){const rows=ranks(y);return rows.length&&rows[0].count>0?rows.filter(m=>m.count===rows[0].count):[];}
 function daysUntil(s){const parts=s?.split('-').map(Number),t=today().split('-').map(Number);if(!parts||parts.length!==3)return null;return Math.max(0,Math.round((Date.UTC(parts[0],parts[1]-1,parts[2])-Date.UTC(t[0],t[1]-1,t[2]))/86400000));}
 function renderGate(msg=''){
+ const bell=$('#reader-bell');if(bell)bell.hidden=true;
  ownEventIds=new Set();if(memberEventDialog?.open)memberEventDialog.close();
  window.FantastiXPhotos?.reset();
  $('#reader-app').hidden=true;$('#auth-gate').hidden=false;$('#tabs').innerHTML='';
@@ -167,7 +168,7 @@ function renderApp(){
  if(!tabs.some(t=>t[0]===tab))tab='dashboard';
  $('#tabs').style?.setProperty('--nav-count',tabs.length);$('#tabs').innerHTML=tabs.map(([id,label,icon])=>`<button class="navbutton ${tab===id?'active':''}" data-tab="${id}" aria-label="${label}"><span class="tab-icon">${window.FantastixUI?.icon(id==='dashboard'?'home':id==='cash'?'fines':id)||esc(icon)}</span><span>${esc(label)}</span></button>`).join('');
  $('#content').innerHTML=(readerInboxOpen?readerInbox():'')+({dashboard,meetings,excursions,calendar:calendarPage,ranking,members,cash}[tab])();
- const bell=$('#reader-bell');if(bell){const count=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;bell.innerHTML=readerBellIcon()+(count?`<b>${count}</b>`:'');}
+ const bell=$('#reader-bell');if(bell){const count=readerUpdates.filter(x=>!readerUpdateReads.has(x.id)).length;bell.innerHTML=readerBellIcon()+(count?`<b>${count}</b>`:'');bell.hidden=false;}
  $('#updated').textContent='Stand: '+dateTime(lastFetched||data.publishedAt);
  window.FantastiXPhotos?.configure({context:()=>({client:cloud,user,admin:false})});
  window.FantastiXPhotos?.hydrate();

@@ -18,7 +18,8 @@ function environment(file){
 (async()=>{
  for(const file of ['app.js','lesen.js']){
   const env=environment(file),{w,doc,run}=env,admin=file==='app.js';
-  run(admin?'render()':'renderApp()');
+  if(!admin)assert.equal(doc.querySelector('#reader-bell').hidden,true,'Bell is hidden until the signed-in view is ready');
+  run(admin?'render()':'renderApp()');if(!admin)assert.equal(doc.querySelector('#reader-bell').hidden,false);
   run("excursionVotes=[{excursion_id:'e',member_id:'a',status:'yes',updated_at:'2026-10-30T12:30:00Z',admin_locked:true},{excursion_id:'e',member_id:'b',status:'unsure'},{excursion_id:'e',member_id:'c',status:'no'}]");
   const summary=run(admin?'adminCountSummary(excursionVoteCounts("e"))':'readerCountSummary(excursionCount("e"))');const counts=doc.createElement('div');counts.innerHTML=summary;assert.match(counts.textContent,/👍 1.*👎 1.*❓ 1/);assert.doesNotMatch(counts.textContent,/offen|Dabei|Zusagen|Absagen|Unsicher/);assert.equal(counts.querySelectorAll('[role="img"]').length,3);for(const [status,emoji,label] of [['present','👍','Dabei'],['absent','👎','Nicht dabei'],['unsure','❓','Unsicher']]){const badge=doc.createElement('div');badge.innerHTML=run(`voteStatusHTML('${status}')`);assert.equal(badge.textContent,emoji);assert.equal(badge.firstElementChild.getAttribute('aria-label'),label);}assert.equal(run('voteStatusHTML(undefined)'),'Noch offen', 'Unanswered members keep their visible status');
   if(admin)assert.match(run('eventVoteSummary("e")'),/👍 1 · 👎 1 · ❓ 1/);
@@ -58,6 +59,7 @@ function environment(file){
    run("data.meetings[0].attendance.a={status:'unsure'};");doc.querySelector('#content').innerHTML=run('votePanel(data.meetings[0])');assert.ok(doc.querySelector('.meeting-note-input'));assert.equal(doc.querySelector('[aria-label="Unsicher"]').getAttribute('aria-pressed'),'true');
    run("excursionVotes=[{excursion_id:'e',member_id:'a',status:'unsure'}]");assert.equal(run('excursionCount("e").unsure'),1);
   }
+  if(!admin){run("user=null;renderGate('Anmeldung wird ausgeführt …');");assert.equal(doc.querySelector('#reader-bell').hidden,true,'Bell stays hidden during login and after logout');}
   env.dom.window.close();
  }
  const env=environment('app.js'),{w,doc,run}=env;
