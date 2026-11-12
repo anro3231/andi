@@ -2,6 +2,10 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.1.1
+
+- Auf der Startseite steht der Organisator vor dem Abstimmungs-Countdown, im Admin- und Lesemodus.
+
 ## Version 4.1.0
 
 - Abstimmungsdetails für Stammtische und Events verwenden dieselbe Datumszeile mit Kalender-Icon wie Dashboard und Terminlisten.
