@@ -2,6 +2,13 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.9
+
+- Frische, bisher nicht als Tagesbild gezeigte Fotos aus den letzten sieben Tagen werden bei der täglichen Auswahl bevorzugt. Innerhalb dieser Gruppe wird zufällig gewählt; danach bleibt der bisherige Zufallspool verfügbar. Das Vortagesfoto wird bei mehreren Bildern weiterhin ausgeschlossen.
+- Ein bereits festgelegtes Tagesbild bleibt für alle Mitglieder bis zum Tageswechsel in Europe/Vienna gleich. Uploads ersetzen kein gültiges Tagesbild.
+- Stammtisch- und Eventlisten zeigen das vollständige Datum mit demselben Kalender-Icon und derselben Typografie wie „Nächster Stammtisch“. Der doppelte Status entfällt; Kategorien und Öffnen rechts unten bleiben in beiden Modi erhalten.
+- Die Supabase-Migration `fantastix_prefer_fresh_daily_photos` ist in der serverseitigen Migrationshistorie dokumentiert.
+
 ## Version 4.0.8
 
 - Gemeinsamer Profilkopf mit Bild, Name, Mitgliedsnummer, Status und letzter Aktivität in beiden Mitgliedsdetailansichten.

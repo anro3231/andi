@@ -256,8 +256,8 @@ function termDateCaption(date){
  return `<strong>${esc(parsed.toLocaleDateString('de-AT',{weekday:'long',timeZone:'UTC'}))}</strong><small>${esc(String(date).slice(0,4))}</small>`;
 }
 function termMeta(icon,text){return `<span class="term-meta-row">${uiSymbol(icon,'·')}<span>${esc(text)}</span></span>`;}
-function termEntryBody({date,title,dateText,time,location,organizers,status,summary}){
- return `<span class="term-entry-top">${termDateBadge(date)}<span class="reader-entry-info">${termDateCaption(date)}</span><span class="reader-entry-end">${status}</span></span>${dateText?`<strong class="term-entry-title">${esc(title)}</strong>`:''}<span class="term-entry-meta">${dateText?termMeta('calendar',dateText):''}${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</span><span class="term-entry-footer">${summary||'<span></span>'}<span class="term-entry-open">Öffnen ${uiSymbol('chevronRight','›')}</span></span>`;
+function termEntryBody({title,dateText,time,location,organizers,summary}){
+ return `<span class="next-date-row term-list-date"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date">${esc(dateText||title)}</strong></span>${dateText?`<strong class="term-entry-title">${esc(title)}</strong>`:''}<span class="term-entry-meta">${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</span><span class="term-entry-footer">${summary||'<span></span>'}<span class="term-entry-open">Öffnen ${uiSymbol('chevronRight','›')}</span></span>`;
 }
 function termListGroups(groups,renderEntry,emptyText){
  const visible=groups.filter(group=>group.items.length);
@@ -269,7 +269,7 @@ function meetings(){
  if(!section('meetings'))return empty('Stammtische sind nicht freigegeben.');
  if(readerEntry?.kind==='meeting'&&data.meetings.some(m=>m.id===readerEntry.id))return meetingDetails(readerEntry.id);
  const groups=[{title:'Anstehend',items:data.meetings.filter(m=>m.date>=today()).sort(upcomingTermOrder)},{title:'Vergangen',items:data.meetings.filter(m=>m.date<today()).sort(pastTermOrder)}];
- const entry=m=>`<button type="button" class="reader-entry" data-reader-meeting="${esc(m.id)}" aria-label="Stammtisch am ${esc(dateLabel(m.date))} öffnen">${termEntryBody({date:m.date,title:dateLabel(m.date),time:timeLabel(m.time),location:m.location||'Gasthaus noch offen',organizers:section('members')?'Organisator: '+(member(m.organizerId)?.name||'Noch offen'):'',status:termStatusHTML(m.date===today()?'Heute':m.date>today()?'Geplant':'Vergangen'),summary:section('members')?readerCountSummary(rsvpCounts(m)):''})}</button>`;
+ const entry=m=>`<button type="button" class="reader-entry" data-reader-meeting="${esc(m.id)}" aria-label="Stammtisch am ${esc(dateLabel(m.date))} öffnen">${termEntryBody({date:m.date,title:dateLabel(m.date),time:timeLabel(m.time),location:m.location||'Gasthaus noch offen',organizers:section('members')?'Organisator: '+(member(m.organizerId)?.name||'Noch offen'):'',summary:section('members')?readerCountSummary(rsvpCounts(m)):''})}</button>`;
  return `${heading('Stammtische')}${termListGroups(groups,entry,'Noch keine Stammtische.')}`;
 }
 function termStatusHTML(label){const kind={'Heute':'today','Geplant':'planned','Vergangen':'past','Abgeschlossen':'closed','Läuft':'live','In Planung':'draft'}[label]||'draft';return `<span class="chip meeting-status status-${kind}">${esc(label)}</span>`;}
@@ -295,7 +295,7 @@ function excursions(){
  if(!section('excursions'))return empty('Events sind nicht freigegeben.');
  if(readerEntry?.kind==='excursion'&&(data.excursions||[]).some(x=>x.id===readerEntry.id))return excursionDetails(readerEntry.id);
  const list=data.excursions||[],groups=[{title:'Anstehend',items:list.filter(x=>x.date&&!eventIsPast(x)).sort(upcomingTermOrder)},{title:'Noch ohne Termin',items:list.filter(x=>!x.date&&!eventIsPast(x)).sort(upcomingTermOrder)},{title:'Vergangen',items:list.filter(eventIsPast).sort(pastTermOrder)}];
- const entry=x=>`<button type="button" class="reader-entry" data-reader-excursion="${esc(x.id)}" aria-label="Event ${esc(x.title)} öffnen">${termEntryBody({date:x.date,title:x.title,dateText:tripDateLabel({...x,time:''}),time:x.time,location:x.location||'Ort noch offen',organizers:'Organisatoren: '+tripOrganizers(x),status:termStatusHTML(eventStatus(x)),summary:readerCountSummary(excursionCount(x.id))})}</button>`;
+ const entry=x=>`<button type="button" class="reader-entry" data-reader-excursion="${esc(x.id)}" aria-label="Event ${esc(x.title)} öffnen">${termEntryBody({date:x.date,title:x.title,dateText:tripDateLabel({...x,time:''}),time:x.time,location:x.location||'Ort noch offen',organizers:'Organisatoren: '+tripOrganizers(x),summary:readerCountSummary(excursionCount(x.id))})}</button>`;
  return `${heading('Events')}<div class="toolbar"><button class="button" type="button" data-member-event-new>＋ Event planen</button></div>${excursionVoteError?`<div class="notice warning">${esc(excursionVoteError)}</div>`:''}${termListGroups(groups,entry,'Noch keine Events eingetragen.')}`;
 }
 function openReaderEntry(kind,id){

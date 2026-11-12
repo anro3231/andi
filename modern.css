@@ -227,6 +227,7 @@ dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px))
 .term-list-heading small{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 .term-list .reader-entry{display:grid;grid-template-columns:minmax(0,1fr);justify-content:stretch;gap:12px;padding:16px 0;min-width:0;line-height:1.45;border-color:var(--border);transition:background-color 160ms ease,transform 160ms ease;-webkit-tap-highlight-color:transparent}
 .term-list .reader-entry:last-child{padding-bottom:16px}
+.term-list .term-list-date{margin:0}
 .term-entry-top{display:grid;grid-template-columns:44px minmax(0,1fr) max-content;grid-template-areas:"date title status";align-items:start;gap:10px;min-width:0}
 .term-date-badge{display:grid;grid-area:date;align-content:center;justify-items:center;gap:4px;align-self:start;min-height:56px;width:44px;padding:8px 4px;border-radius:13px;background:var(--theme-soft,#fff0f3);color:var(--accent);font-variant-numeric:tabular-nums}
 .term-date-badge strong{font-size:24px;font-weight:750;line-height:1;letter-spacing:-.6px}
