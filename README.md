@@ -2,6 +2,12 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.8
+
+- Gemeinsamer Profilkopf mit Bild, Name, Mitgliedsnummer, Status und letzter Aktivität in beiden Mitgliedsdetailansichten.
+- Aktuelle Übersicht zu Stammtischserie und offenen Strafen sowie eine Historie mit Datumsblöcken und Orts-/Abstimmungs-Icons. Jahres- und Gesamtteilnahmen aus der Rangliste werden in dieser Ansicht nicht mehr angezeigt.
+- Im Adminmodus ist das Bearbeitungsformular klar abgesetzt; das Entfernen eines Mitglieds ist eingeklappt. Nachladen der Historie erhält ungespeicherte Formulareingaben.
+
 ## Version 4.0.7
 
 - Die Abstimmungsansichten für Stammtische und Events verwenden denselben Datumsblock und dieselben Metadaten-Icons wie die Terminlisten.
