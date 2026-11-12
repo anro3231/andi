@@ -2,6 +2,12 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.4
+
+- Stammtisch- und Eventlisten mit kompaktem Datumsblock, Metadaten-Icons und einer klaren Trennung von Rückmeldungen und Öffnen-Aktion.
+- Anstehende Termine stehen chronologisch zuerst, vergangene Termine absteigend danach. Events ohne Datum bilden eine eigene Gruppe; laufende Events bleiben bei den anstehenden Terminen.
+- Gleiche Listendarstellung im Lese- und Adminmodus, bestehende Detail- und Bearbeitungsfunktionen bleiben erreichbar.
+
 ## Version 4.0.3
 
 - Das Datum bei „Nächster Event“ ist kleiner und leichter gewichtet, mit derselben Textfarbe wie bei „Nächster Stammtisch“.
