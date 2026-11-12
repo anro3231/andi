@@ -225,27 +225,27 @@ dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px))
 .term-list-heading>span{display:inline-flex;align-items:center;gap:8px;min-width:0}
 .term-list-heading .ui-symbol{margin:0;color:var(--accent)}
 .term-list-heading small{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
-.term-list .reader-entry{display:grid;gap:12px;padding:16px 0;min-width:0;line-height:1.45;border-color:var(--border);transition:background-color 160ms ease,transform 160ms ease;-webkit-tap-highlight-color:transparent}
+.term-list .reader-entry{display:grid;grid-template-columns:minmax(0,1fr);justify-content:stretch;gap:12px;padding:16px 0;min-width:0;line-height:1.45;border-color:var(--border);transition:background-color 160ms ease,transform 160ms ease;-webkit-tap-highlight-color:transparent}
 .term-list .reader-entry:last-child{padding-bottom:16px}
-.term-entry-top{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:12px;min-width:0}
-.term-date-badge{display:grid;align-content:center;justify-items:center;gap:4px;align-self:start;min-height:56px;width:48px;padding:8px 4px;border-radius:13px;background:var(--theme-soft,#fff0f3);color:var(--accent);font-variant-numeric:tabular-nums}
+.term-entry-top{display:grid;grid-template-columns:48px minmax(0,1fr) auto;grid-template-areas:"date title status";align-items:start;gap:12px;min-width:0}
+.term-date-badge{display:grid;grid-area:date;align-content:center;justify-items:center;gap:4px;align-self:start;min-height:56px;width:48px;padding:8px 4px;border-radius:13px;background:var(--theme-soft,#fff0f3);color:var(--accent);font-variant-numeric:tabular-nums}
 .term-date-badge strong{font-size:24px;font-weight:750;line-height:1;letter-spacing:-.6px}
 .term-date-badge small{font-size:10px;font-weight:700;line-height:1.2;letter-spacing:.5px}
 .term-date-badge .ui-symbol{margin:0}.term-date-badge svg{width:22px;height:22px}
-.term-list .reader-entry-info{min-width:0;gap:0}
+.term-list .reader-entry-info{grid-area:title;min-width:0;gap:0}
 .term-list .reader-entry-info strong{margin:0;font-size:16px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
-.term-list .reader-entry-end{align-self:center;justify-items:end}
+.term-list .reader-entry-end{grid-area:status;align-self:start;justify-self:end;justify-items:end}
 .term-entry-meta{display:grid;gap:7px;min-width:0}
 .term-meta-row{display:flex;align-items:flex-start;gap:9px;min-width:0;font-size:13px;line-height:1.5;color:var(--muted)}
 .term-meta-row .ui-symbol{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:20px;margin:0;color:var(--muted)}
 .term-meta-row .ui-symbol svg{width:17px;height:17px}
 .term-meta-row>span:last-child{min-width:0;overflow-wrap:anywhere}
-.term-entry-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 12px;min-width:0}
+.term-entry-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 12px;min-width:0}
 .term-entry-footer .reader-counts{gap:5px 10px;font-variant-numeric:tabular-nums}
-.term-entry-open{display:inline-flex;align-items:center;gap:5px;margin-left:auto;font-size:12px;font-weight:650;color:var(--accent);white-space:nowrap}
+.term-entry-open{display:inline-flex;align-items:center;gap:5px;justify-self:end;margin-left:0;font-size:12px;font-weight:650;color:var(--accent);white-space:nowrap}
 .term-entry-open .ui-symbol{margin:0}.term-entry-open svg{width:15px;height:15px}
 .term-list .reader-entry:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:12px}
 .term-list .reader-entry:active{transform:translateY(1px)}
-@media(max-width:420px){.term-list.reader-entry-list{padding-inline:14px}.term-entry-top{grid-template-columns:48px minmax(0,1fr);gap:4px 11px}.term-date-badge{grid-row:1/span 2}.term-list .reader-entry-info{grid-column:2;grid-row:1}.term-list .reader-entry-end{grid-column:2;grid-row:2;justify-items:start;align-self:start}}
+@media(max-width:420px){.term-list.reader-entry-list{padding-inline:14px}.term-entry-top{grid-template-columns:48px minmax(0,1fr);grid-template-areas:"date status" "date title";gap:6px 11px}}
 @media(hover:hover){.term-list .reader-entry:hover{background:var(--theme-tint,#f8f8fa)}}
 @media(prefers-reduced-motion:reduce){.term-list .reader-entry{transition:none}.term-list .reader-entry:active{transform:none}}
