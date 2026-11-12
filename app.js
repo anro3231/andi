@@ -48,7 +48,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.0.8";
+const APP_VERSION = window.FX_VERSION || "4.0.9";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -389,8 +389,8 @@ function termDateCaption(date){
  return `<strong>${esc(parsed.toLocaleDateString('de-AT',{weekday:'long',timeZone:'UTC'}))}</strong><small>${esc(String(date).slice(0,4))}</small>`;
 }
 function termMeta(icon,text){return `<span class="term-meta-row">${uiSymbol(icon,'·')}<span>${esc(text)}</span></span>`;}
-function termEntryBody({date,title,dateText,time,location,organizers,status,summary}){
- return `<span class="term-entry-top">${termDateBadge(date)}<span class="reader-entry-info">${termDateCaption(date)}</span><span class="reader-entry-end">${status}</span></span>${dateText?`<strong class="term-entry-title">${esc(title)}</strong>`:''}<span class="term-entry-meta">${dateText?termMeta('calendar',dateText):''}${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</span><span class="term-entry-footer">${summary||'<span></span>'}<span class="term-entry-open">Öffnen ${uiSymbol('chevronRight','›')}</span></span>`;
+function termEntryBody({title,dateText,time,location,organizers,summary}){
+ return `<span class="next-date-row term-list-date"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date">${esc(dateText||title)}</strong></span>${dateText?`<strong class="term-entry-title">${esc(title)}</strong>`:''}<span class="term-entry-meta">${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</span><span class="term-entry-footer">${summary||'<span></span>'}<span class="term-entry-open">Öffnen ${uiSymbol('chevronRight','›')}</span></span>`;
 }
 function termListGroups(groups,renderEntry,emptyText){
  const visible=groups.filter(group=>group.items.length);
@@ -400,7 +400,7 @@ function upcomingTermOrder(a,b){return String(a.date||'').localeCompare(String(b
 function pastTermOrder(a,b){return String(b.endDate||b.date||'').localeCompare(String(a.endDate||a.date||''))||String(b.time||'').localeCompare(String(a.time||''));}
 function meetingsHTML(){
  const groups=[{title:'Anstehend',items:data.meetings.filter(m=>m.date>=today()).sort(upcomingTermOrder)},{title:'Vergangen',items:data.meetings.filter(m=>m.date<today()).sort(pastTermOrder)}];
- const entry=m=>{const entries=data.members.map(p=>effectiveAttendance(m,p.id)).filter(Boolean);return `<button type="button" class="reader-entry" data-action="meeting-edit" data-id="${esc(m.id)}" aria-label="Stammtisch am ${esc(fmtDate(m.date))} öffnen">${termEntryBody({date:m.date,title:fmtDate(m.date),time:m.time||'18:30',location:m.location||'Gasthaus noch offen',organizers:'Organisator: '+(member(m.organizerId)?.name||'Noch offen'),status:termStatusHTML(m.date===today()?'Heute':m.date>today()?'Geplant':'Vergangen'),summary:adminCountSummary({yes:entries.filter(x=>x.status==='present').length,unsure:entries.filter(x=>x.status==='unsure').length,no:entries.filter(x=>x.status==='absent').length})})}</button>`;};
+ const entry=m=>{const entries=data.members.map(p=>effectiveAttendance(m,p.id)).filter(Boolean);return `<button type="button" class="reader-entry" data-action="meeting-edit" data-id="${esc(m.id)}" aria-label="Stammtisch am ${esc(fmtDate(m.date))} öffnen">${termEntryBody({date:m.date,title:fmtDate(m.date),time:m.time||'18:30',location:m.location||'Gasthaus noch offen',organizers:'Organisator: '+(member(m.organizerId)?.name||'Noch offen'),summary:adminCountSummary({yes:entries.filter(x=>x.status==='present').length,unsure:entries.filter(x=>x.status==='unsure').length,no:entries.filter(x=>x.status==='absent').length})})}</button>`;};
  return `${pageHead('','Stammtische','')}<div class="toolbar"><button class="button" data-action="meeting-new">+ Neuer Stammtisch</button></div>${termListGroups(groups,entry,'Noch keine Stammtische.')}`;
 }
 function calendarHTML(){return `${pageHead('','Kalender','Stammtische, Events und Geburtstage.')}${window.FantastiXCalendar.render({...data,birthdays:birthdays.map(b=>({...b,name:member(b.member_id)?.name||'Mitglied'}))},calendarMonth,calendarSelected,true)}`;}
@@ -409,7 +409,7 @@ function eventIsPast(x){return !!x.completed||!!(x.endDate||x.date)&&(x.endDate|
 function eventStatus(x){if(x.completed)return 'Abgeschlossen';if(eventIsPast(x))return 'Vergangen';if(!x.date)return 'In Planung';if(x.date>today())return 'Geplant';if(x.endDate&&x.endDate>x.date)return 'Läuft';return x.date===today()?'Heute':'Vergangen';}
 function excursionsHTML(){
  const list=data.excursions||[],groups=[{title:'Anstehend',items:list.filter(x=>x.date&&!eventIsPast(x)).sort(upcomingTermOrder)},{title:'Noch ohne Termin',items:list.filter(x=>!x.date&&!eventIsPast(x)).sort(upcomingTermOrder)},{title:'Vergangen',items:list.filter(eventIsPast).sort(pastTermOrder)}];
- const entry=x=>`<button type="button" class="reader-entry" data-action="excursion-edit" data-id="${esc(x.id)}" aria-label="Event ${esc(x.title)} öffnen">${termEntryBody({date:x.date,title:x.title,dateText:excursionPeriod({...x,time:''}),time:x.time,location:x.location||'Ort noch offen',organizers:'Organisatoren: '+excursionOrganizers(x),status:termStatusHTML(eventStatus(x)),summary:adminCountSummary(excursionVoteCounts(x.id))})}</button>`;
+ const entry=x=>`<button type="button" class="reader-entry" data-action="excursion-edit" data-id="${esc(x.id)}" aria-label="Event ${esc(x.title)} öffnen">${termEntryBody({date:x.date,title:x.title,dateText:excursionPeriod({...x,time:''}),time:x.time,location:x.location||'Ort noch offen',organizers:'Organisatoren: '+excursionOrganizers(x),summary:adminCountSummary(excursionVoteCounts(x.id))})}</button>`;
  return `${pageHead('','Events','')}<div class="toolbar"><button class="button" data-action="excursion-new">+ Event planen</button></div>${termListGroups(groups,entry,'Noch keine Events eingetragen.')}<p class="hint">Events beeinflussen weder Ranglisten noch Strafenkassa.</p>`;
 }
 function eventVoteSummary(id){return adminCountSummary(excursionVoteCounts(id));}

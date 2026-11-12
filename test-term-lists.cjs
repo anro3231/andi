@@ -19,17 +19,17 @@ function setup(admin){
   assert.deepEqual(ids(),['today','next','later','recent','old']);
   assert.deepEqual([...root().querySelectorAll('.term-list')].map(g=>g.getAttribute('aria-label')),['Anstehend','Vergangen']);
   const next=root().querySelector(admin?'[data-id=next]':'[data-reader-meeting=next]');
-  assert.equal(next.querySelector('.term-date-badge').textContent,'13NOV');assert.equal(next.querySelector('.term-date-badge').getAttribute('aria-hidden'),'true');assert.equal(next.querySelector('.reader-entry-info strong').textContent,'Freitag');assert.equal(next.querySelector('.reader-entry-info small').textContent,'2026');
+  assert.equal(next.querySelector('.next-date').textContent,run(admin?"fmtDate('2026-11-13')":"dateLabel('2026-11-13')"));assert.ok(next.querySelector('.next-date-row .next-calendar svg'));assert.equal(next.querySelector('.meeting-status'),null);assert.equal(next.querySelector('.reader-entry-end'),null);
   assert.equal(next.querySelectorAll('.term-entry-meta svg').length,3);assert.match(next.textContent,/18:30 Uhr/);assert.match(next.textContent,/Gasthaus <Ort>/);assert.match(next.textContent,/Alex <A>/);assert.equal(next.querySelector('ort'),null);
   assert.ok(next.querySelector('[aria-label="1 Zusagen"] svg'));assert.equal(next.querySelectorAll('button').length,0,'Whole row is one action, no nested controls');
-  assert.match(root().querySelector('.reader-entry').textContent,/Heute/);
+  assert.equal(root().querySelectorAll('.reader-entry .meeting-status').length,0);
   next.querySelector('.term-entry-meta svg').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
   await Promise.resolve();assert.equal(run(admin?'adminEntry.kind':'readerEntry.kind'),'meeting');assert.equal(run(admin?'adminEntry.id':'readerEntry.id'),'next');
   run(admin?"adminEntry=null;page='excursions';render();":"readerEntry=null;tab='excursions';renderApp();");
   assert.deepEqual(ids(),['ongoing','early','late','undated','closed','past']);
   assert.deepEqual([...root().querySelectorAll('.term-list')].map(g=>g.getAttribute('aria-label')),['Anstehend','Noch ohne Termin','Vergangen']);
-  const early=root().querySelector(admin?'[data-id=early]':'[data-reader-excursion=early]');assert.equal(early.querySelectorAll('.term-entry-meta svg').length,4);assert.equal(early.querySelector('.term-entry-title').textContent,'Event <Test>');assert.match(early.textContent,/18:00 Uhr/);assert.equal((early.textContent.match(/18:00/g)||[]).length,1);
-  const ongoing=root().querySelector(admin?'[data-id=ongoing]':'[data-reader-excursion=ongoing]');assert.match(ongoing.textContent,/Läuft/);assert.match(ongoing.textContent,/–/);
+  const early=root().querySelector(admin?'[data-id=early]':'[data-reader-excursion=early]');assert.equal(early.querySelectorAll('.term-entry-meta svg').length,3);assert.equal(early.querySelector('.term-entry-title').textContent,'Event <Test>');assert.match(early.textContent,/18:00 Uhr/);assert.equal((early.textContent.match(/18:00/g)||[]).length,1);
+  const ongoing=root().querySelector(admin?'[data-id=ongoing]':'[data-reader-excursion=ongoing]');assert.equal(ongoing.closest('.term-list').getAttribute('aria-label'),'Anstehend');assert.equal(ongoing.querySelector('.meeting-status'),null);assert.match(ongoing.textContent,/–/);
   const undated=root().querySelector(admin?'[data-id=undated]':'[data-reader-excursion=undated]');assert.match(undated.textContent,/Termin offen/);assert.match(undated.textContent,/Uhrzeit noch offen/);assert.match(undated.textContent,/Ort noch offen/);assert.doesNotMatch(undated.textContent,/NaN|undefined/);
   early.querySelector('.term-entry-open svg').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));await Promise.resolve();assert.equal(run(admin?'adminEntry.kind':'readerEntry.kind'),'excursion');assert.equal(run(admin?'adminEntry.id':'readerEntry.id'),'early');
   if(!admin){run("readerEntry=null;data.sections.members=false;tab='meetings';renderApp();");assert.equal(root().querySelector('.reader-counts'),null);assert.doesNotMatch(root().textContent,/Organisator:/);run("data.sections.meetings=false;");assert.doesNotMatch(run('meetings()'),/data-reader-meeting=/);assert.match(run('meetings()'),/nicht freigegeben/);}
@@ -37,5 +37,5 @@ function setup(admin){
   run(admin?"page='excursions';render();":"tab='excursions';renderApp();");assert.match(root().textContent,/Noch keine Events/);assert.ok(root().querySelector(admin?'[data-action=excursion-new]':'[data-member-event-new]'));
   dom.window.close();
  }
- console.log('PASS term lists: matching groups/order in both modes, date badges/icons, counts, safe text, ongoing/undated/completed events, unchanged delegated detail clicks, permissions and empty states.');
+ console.log('PASS term lists: matching groups/order in both modes, dashboard date rows/icons, counts, safe text, ongoing/undated/completed events, unchanged delegated detail clicks, permissions and empty states.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
