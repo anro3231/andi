@@ -2,6 +2,11 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.6
+
+- Kompakter Listenkopf mit Tag/Monat links, Wochentag/Jahr daneben und Status rechts oben.
+- Eventtitel stehen unter dem Kopf über die volle Breite; der Kopf bleibt auch auf dem Handy in einer Zeile. Die Öffnen-Aktion bleibt rechts unten.
+
 ## Version 4.0.4
 
 - Stammtisch- und Eventlisten mit kompaktem Datumsblock, Metadaten-Icons und einer klaren Trennung von Rückmeldungen und Öffnen-Aktion.

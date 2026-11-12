@@ -48,7 +48,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.0.5";
+const APP_VERSION = window.FX_VERSION || "4.0.6";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -374,9 +374,14 @@ function termDateBadge(date){
  const month=parts?['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'][Number(parts[2])-1]:null;
  return `<span class="term-date-badge" aria-hidden="true">${month?`<strong>${Number(parts[3])}</strong><small>${month}</small>`:`${uiSymbol('calendar','▦')}<small>Offen</small>`}</span>`;
 }
+function termDateCaption(date){
+ const parsed=new Date(String(date||'')+'T12:00:00Z');
+ if(!date||Number.isNaN(parsed.valueOf()))return '<strong>Termin offen</strong>';
+ return `<strong>${esc(parsed.toLocaleDateString('de-AT',{weekday:'long',timeZone:'UTC'}))}</strong><small>${esc(String(date).slice(0,4))}</small>`;
+}
 function termMeta(icon,text){return `<span class="term-meta-row">${uiSymbol(icon,'·')}<span>${esc(text)}</span></span>`;}
 function termEntryBody({date,title,dateText,time,location,organizers,status,summary}){
- return `<span class="term-entry-top">${termDateBadge(date)}<span class="reader-entry-info"><strong>${esc(title)}</strong></span><span class="reader-entry-end">${status}</span></span><span class="term-entry-meta">${dateText?termMeta('calendar',dateText):''}${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</span><span class="term-entry-footer">${summary||'<span></span>'}<span class="term-entry-open">Öffnen ${uiSymbol('chevronRight','›')}</span></span>`;
+ return `<span class="term-entry-top">${termDateBadge(date)}<span class="reader-entry-info">${termDateCaption(date)}</span><span class="reader-entry-end">${status}</span></span>${dateText?`<strong class="term-entry-title">${esc(title)}</strong>`:''}<span class="term-entry-meta">${dateText?termMeta('calendar',dateText):''}${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</span><span class="term-entry-footer">${summary||'<span></span>'}<span class="term-entry-open">Öffnen ${uiSymbol('chevronRight','›')}</span></span>`;
 }
 function termListGroups(groups,renderEntry,emptyText){
  const visible=groups.filter(group=>group.items.length);
