@@ -252,3 +252,16 @@ dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px))
 @media(max-width:420px){.term-list.reader-entry-list{padding-inline:14px}}
 @media(hover:hover){.term-list .reader-entry:hover{background:var(--theme-tint,#f8f8fa)}}
 @media(prefers-reduced-motion:reduce){.term-list .reader-entry{transition:none}.term-list .reader-entry:active{transform:none}}
+
+/* Voting detail metadata follows the compact list header. */
+.term-detail-header .reader-entry-info{display:grid;grid-area:title;align-self:center;gap:3px;min-width:0}
+.term-detail-header .reader-entry-info strong{margin:0;font-size:15px;font-weight:700;line-height:1.4;color:var(--ink);overflow-wrap:anywhere}
+.term-detail-header .reader-entry-info small{font-size:12px;line-height:1.4;color:var(--muted)}
+.term-detail-header .reader-entry-end{display:grid;grid-area:status;align-self:start;justify-self:end;justify-items:end;min-width:0;max-width:105px}
+.term-detail-header .meeting-status{max-width:100%;white-space:normal;text-align:right}
+.term-detail-header .term-detail-title{margin:16px 0 0;font-size:20px;font-weight:730;line-height:1.35;letter-spacing:-.4px;color:var(--ink);overflow-wrap:anywhere}
+.term-detail-meta{display:grid;gap:10px;margin-top:16px;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--theme-tint,#f7f8fa)}
+.term-detail-meta .term-meta-row{font-size:14px;line-height:1.5;color:var(--ink)}
+.term-detail-meta .term-meta-row .ui-symbol{color:var(--muted)}
+.term-detail-description{margin:14px 0 0;padding:0 0 0 12px;border-left:2px solid var(--accent);font-size:14px;line-height:1.6;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.term-detail-header+.member-event-edit{margin-top:14px;margin-bottom:0}

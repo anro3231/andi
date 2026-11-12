@@ -329,18 +329,19 @@ async function saveOrganizerMeeting(form){
  }catch(e){if(status?.isConnected)status.textContent='Nicht gespeichert: '+(e.message||String(e));else alert('Änderung konnte nicht bestätigt werden: '+(e.message||String(e)));}
  finally{delete form.dataset.saving;if(button?.isConnected)button.disabled=false;}
 }
+function votingDetailsHeader({date,dateText,title,time,location,organizers,status}){
+ return `<header class="term-detail-header"><div class="term-entry-top">${termDateBadge(date)}<div class="reader-entry-info">${termDateCaption(date)}</div><div class="reader-entry-end">${status}</div></div>${title?`<h2 class="term-detail-title">${esc(title)}</h2>`:''}<div class="term-detail-meta">${date?termMeta('calendar',dateText):''}${termMeta('clock',time?time+' Uhr':'Uhrzeit noch offen')}${termMeta('location',location)}${organizers?termMeta('members',organizers):''}</div></header>`;
+}
 function meetingDetails(id){
  if(!section('meetings'))return empty('Stammtische sind nicht freigegeben.');
  const items=data.meetings.filter(m=>m.id===id);
  return `${readerEntryBack('Stammtische')}${heading('Stammtisch')}${items.length?items.map(m=>`<section class="card meeting-card">
- <div class="row"><h2>${dateLabel(m.date)}</h2>${termStatusHTML(m.date===today()?'Heute':m.date>today()?'Geplant':'Vergangen')}</div>
- <p>${esc(m.location||'Gasthaus offen')} · ${esc(timeLabel(m.time))} Uhr</p>
- ${section('members')?`<p class="muted tiny">Organisator: ${esc(memberName(m.organizerId))}</p>`:''}
+ ${votingDetailsHeader({date:m.date,dateText:dateLabel(m.date),time:timeLabel(m.time),location:m.location||'Gasthaus noch offen',organizers:section('members')?'Organisator: '+(member(m.organizerId)?.name||'Noch offen'):'',status:termStatusHTML(m.date===today()?'Heute':m.date>today()?'Geplant':'Vergangen')})}
+ ${section('absences')&&m.notes?`<p class="term-detail-description">${esc(m.notes)}</p>`:''}
  ${organizerMeetingEditor(m)}
  ${votePanel(m)}
  ${rsvpRoster(m)}
  
- ${section('absences')&&m.notes?`<p class="hint">${esc(m.notes)}</p>`:''}
  </section>`).join(''):empty('Noch keine Stammtische.')}`;
 }
 
@@ -349,8 +350,8 @@ function excursionDetails(id){
  if(!section('excursions'))return empty('Events sind nicht freigegeben.');
  const sorted=(data.excursions||[]).filter(x=>x.id===id).sort((a,b)=>Number(!!a.completed)-Number(!!b.completed)||Number(!a.date)-Number(!b.date)||String(a.date||'').localeCompare(String(b.date||''))||a.title.localeCompare(b.title,'de'));
  return `${readerEntryBack('Events')}${heading('Event')}${excursionVoteError?`<div class="notice warning">${esc(excursionVoteError)}</div>`:''}
- ${sorted.length?sorted.map(x=>{const own=excursionOwn(x),completed=x.completed||(x.date&&tripLastDate(x)<today());return `<section class="card excursion-card"><div class="row"><h2>${esc(x.title)}</h2>${termStatusHTML(eventStatus(x))}</div>
- ${ownEventIds.has(x.id)?`<button class="ghost member-event-edit" type="button" data-member-event-edit="${esc(x.id)}">Event bearbeiten</button>`:''}<p class="muted">${tripDateLabel(x)}</p>${x.location?`<p><strong>${esc(x.location)}</strong></p>`:''}${x.notes?`<p class="muted">${esc(x.notes)}</p>`:''}<p class="muted tiny">Organisatoren: ${esc(tripOrganizers(x))}</p>
+ ${sorted.length?sorted.map(x=>{const own=excursionOwn(x),completed=x.completed||(x.date&&tripLastDate(x)<today());return `<section class="card excursion-card">${votingDetailsHeader({date:x.date,dateText:tripDateLabel({...x,time:''}),title:x.title,time:x.time,location:x.location||'Ort noch offen',organizers:'Organisatoren: '+tripOrganizers(x),status:termStatusHTML(eventStatus(x))})}
+ ${ownEventIds.has(x.id)?`<button class="ghost member-event-edit" type="button" data-member-event-edit="${esc(x.id)}">Event bearbeiten</button>`:''}${x.notes?`<p class="term-detail-description">${esc(x.notes)}</p>`:''}
  <div class="vote-panel"><div class="vote-header"><strong>Deine Teilnahme</strong>${completed?'<span class="chip gray">Abstimmung geschlossen</span>':''}</div>
  <div class="vote-actions">${[['yes','Dabei','yes'],['unsure','Unsicher','unsure'],['no','Nicht dabei','no']].map(([value,label,tone])=>`<button type="button" class="vote-btn ${own?.status===value?'selected '+tone:''}" data-excursion-vote="${value}" data-excursion-id="${esc(x.id)}" aria-label="${label}" title="${label}" aria-pressed="${own?.status===value}" ${completed||busy||!!excursionVoteError?'disabled':''}>${voteChoiceContent(value,label)}</button>`).join('')}</div><p class="vote-feedback" role="status" aria-live="polite"></p>
  ${!own?.status?'<small class="muted">Noch offen</small>':''}</div>${excursionRoster(x)}</section>`}).join(''):empty('Noch keine Events eingetragen.')}`;

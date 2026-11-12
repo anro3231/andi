@@ -20,6 +20,10 @@ run("cloud=window.mock;refresh=async()=>{const call=window.calls.at(-1);if(call.
  assert.equal(doc.querySelector('.next-place').textContent,'18:30 UhrOrt <Test>');
  assert.equal(doc.querySelectorAll('.next-card [data-vote]').length,0,'Only the requested existing detail flow is changed');
  run("openReaderEntry('meeting','m')");
+ const meetingHeader=doc.querySelector('.meeting-card .term-detail-header');
+ assert.equal(meetingHeader.querySelector('.term-date-badge').textContent,'1JAN');assert.equal(meetingHeader.querySelector('.reader-entry-info small').textContent,'2099');
+ assert.equal(meetingHeader.querySelectorAll('.term-detail-meta svg').length,4);assert.match(meetingHeader.textContent,/18:30 Uhr/);assert.match(meetingHeader.textContent,/Ort <Test>/);assert.match(meetingHeader.textContent,/Anna <A>/);assert.equal(meetingHeader.querySelector('test,a'),null);
+
  const choice=doc.querySelector('[data-vote="unsure"]');
  assert.equal(choice.textContent,'Unsicher');assert.ok(choice.querySelector('svg'));
  assert.equal(run("voteChoiceContent('present','Dabei')").includes(w.FantastixUI.icon('thumbsUp')),true);
@@ -41,14 +45,19 @@ run("cloud=window.mock;refresh=async()=>{const call=window.calls.at(-1);if(call.
  const count=w.calls.length;
  await run("castVote('m','absent')");assert.equal(w.calls.length,count,'Absence still requires a reason');
  run("deadlines.set('m','2000-01-01T00:00:00Z')");await run("castVote('m','present')");assert.equal(w.calls.length,count,'Expired vote is blocked');
- run("openReaderEntry('excursion','e')");
+ run("Object.assign(data.excursions[0],{title:'Abend <Event>',endDate:'2099-01-03',time:'20:00',location:'Ort <Event>',notes:'Info <Text>'});openReaderEntry('excursion','e')");
+ const eventHeader=doc.querySelector('.excursion-card .term-detail-header');assert.equal(eventHeader.querySelector('h2').textContent,'Abend <Event>');assert.equal(eventHeader.querySelectorAll('.term-detail-meta svg').length,4);assert.match(eventHeader.querySelector('.term-detail-meta').textContent,/–/);assert.equal((eventHeader.textContent.match(/20:00/g)||[]).length,1);assert.equal(doc.querySelector('.term-detail-description').textContent,'Info <Text>');
+
  const eventChoice=doc.querySelector('[data-excursion-vote="yes"]');
  const eventPending=run("voteExcursion('e','yes')");
  assert.equal(doc.querySelector('[data-excursion-vote="yes"]'),eventChoice);
  assert.ok(eventChoice.classList.contains('is-pending'));
  w.reply({error:null});await eventPending;
  assert.equal(doc.querySelector('[data-excursion-vote="yes"]').getAttribute('aria-pressed'),'true');
+ run("Object.assign(data.excursions[0],{date:'',endDate:'',time:'',location:'',notes:''});renderApp()");assert.match(doc.querySelector('.term-detail-header').textContent,/Termin offen/);assert.match(doc.querySelector('.term-detail-meta').textContent,/Uhrzeit noch offen/);assert.match(doc.querySelector('.term-detail-meta').textContent,/Ort noch offen/);assert.doesNotMatch(doc.querySelector('.term-detail-header').textContent,/NaN|undefined/);
+ run("data.meetings[0].notes='Hinweis';data.sections.members=false;data.sections.absences=false;openReaderEntry('meeting','m')");assert.doesNotMatch(doc.querySelector('.term-detail-header').textContent,/Organisator:/);assert.equal(doc.querySelector('.term-detail-description'),null);
+ run("data.sections.absences=true;renderApp()");assert.equal(doc.querySelector('.term-detail-description').textContent,'Hinweis');assert.ok(doc.querySelector('.term-detail-description').compareDocumentPosition(doc.querySelector('.vote-panel'))&w.Node.DOCUMENT_POSITION_FOLLOWING);
  run("data.members=[];tab='dashboard';renderApp()");assert.equal(doc.querySelector('.title').textContent,'Servus');
  dom.window.close();
- console.log('PASS vote feedback: labeled icons, greeting escaping/fallback, meeting metadata, persistent buttons, duplicate guard, success/error recovery, deadline/absence validation and event voting.');
+ console.log('PASS vote feedback: labeled icons, greeting escaping/fallback, styled detail metadata/ranges/open dates/permissions, persistent buttons, duplicate guard, success/error recovery, deadline/absence validation and event voting.');
 })().catch(e=>{dom.window.close();console.error(e);process.exitCode=1;});
