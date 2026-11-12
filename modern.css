@@ -265,3 +265,47 @@ dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px))
 .term-detail-meta .term-meta-row .ui-symbol{color:var(--muted)}
 .term-detail-description{margin:14px 0 0;padding:0 0 0 12px;border-left:2px solid var(--accent);font-size:14px;line-height:1.6;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
 .term-detail-header+.member-event-edit{margin-top:14px;margin-bottom:0}
+
+/* Member profiles: shared overview, with administration clearly separated. */
+.member-profile-top{display:flex;align-items:center;gap:14px;min-width:0}
+.member-profile :is(.avatar,.member-photo){display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;min-width:64px;margin:0;border-radius:18px;object-fit:cover;background:var(--theme-soft,#fff0f3);color:var(--accent);font-size:23px;font-weight:750}
+.member-profile-identity{flex:1;min-width:0}
+.member-profile .member-profile-name{margin:0;font-size:22px;font-weight:750;line-height:1.25;letter-spacing:-.5px;color:var(--ink);overflow-wrap:anywhere}
+.member-profile-tags{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-top:9px;min-width:0}
+.member-profile-number{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
+.member-profile-number .ui-symbol{margin:0}.member-profile-number svg{width:15px;height:15px}
+.member-profile-status{display:inline-block;padding:4px 8px;border-radius:7px;background:var(--theme-soft,#fff0f3);color:var(--accent);font-size:11px;font-weight:650;line-height:1.4;overflow-wrap:anywhere}
+.member-profile-status.is-archived{background:var(--theme-tint,#f2f3f5);color:var(--muted)}
+.member-profile-lastseen{display:flex;align-items:flex-start;gap:8px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.member-profile-lastseen .ui-symbol{flex:0 0 17px;margin:1px 0 0}.member-profile-lastseen svg{width:17px;height:17px}
+.member-detail .member-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 0}
+.member-detail .member-summary .member-stat{display:grid;align-content:start;gap:5px;min-width:0;margin:0;padding:13px;border-radius:14px;background:var(--theme-tint,#f7f8fa);border:1px solid var(--border);box-shadow:none}
+.member-detail .member-stat small{font-size:12px;line-height:1.45;color:var(--muted);overflow-wrap:anywhere}
+.member-detail .member-stat .member-stat-label{min-height:35px;font-weight:600;color:var(--ink)}
+.member-stat-value{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.member-detail .member-stat .value{min-width:0;margin:0;font-size:27px;font-weight:750;line-height:1.2;letter-spacing:-.7px;color:var(--ink);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.member-stat-value .ui-symbol{flex:0 0 21px;margin:0;color:var(--accent)}.member-stat-value svg{width:21px;height:21px}
+.member-history-section,.member-editor{margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
+.member-detail .member-section-title{display:flex;align-items:center;gap:8px;margin:0;font-size:16px;font-weight:700;line-height:1.4;letter-spacing:-.2px;color:var(--ink)}
+.member-section-title .ui-symbol{flex:0 0 19px;margin:0;color:var(--accent)}.member-section-title svg{width:19px;height:19px}
+.member-section-hint{margin:5px 0 10px;font-size:12px;line-height:1.5;color:var(--muted)}
+.member-detail .member-history .item{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:start;gap:10px;padding:12px 0;border-color:var(--border);min-width:0}
+.member-detail .member-history .term-date-badge{grid-area:auto;width:38px;min-height:46px;padding:6px 3px;gap:3px;border-radius:10px}
+.member-history .term-date-badge strong{font-size:19px}.member-history .term-date-badge small{font-size:9px}
+.member-detail .member-history .details{min-width:0}
+.member-detail .member-history .details strong{display:block;margin:0 0 5px;font-size:13px;font-weight:650;line-height:1.4;overflow-wrap:anywhere}
+.member-detail .member-history .details small{font-size:12px;line-height:1.5;color:var(--muted)}
+.member-history-place{display:flex;align-items:flex-start;gap:6px;min-width:0;overflow-wrap:anywhere}
+.member-history-place .ui-symbol{flex:0 0 15px;margin:1px 0 0}.member-history-place svg{width:15px;height:15px}
+.member-detail .member-history .chip{max-width:86px;padding:6px 8px;font-size:11px;line-height:1.4;white-space:normal;text-align:right;overflow-wrap:anywhere}
+.member-detail .member-history .yes-chip{background:#dff7e9;color:#0e6841}.member-detail .member-history .no-chip{background:#ffe5ea;color:#a21d38}
+.member-detail .history-more{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin-top:12px}
+.member-editor>.member-section-title{margin-bottom:14px}
+.member-editor .field{margin:14px 0}.member-editor label{font-size:13px;line-height:1.5}
+.member-active-option{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface,#fff);cursor:pointer}
+.member-active-option input{flex:0 0 20px}
+.member-editor .birthday-editor{margin:18px 0;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.member-editor .birthday-editor .tiny{font-size:12px;line-height:1.5}
+.member-danger{margin-top:18px;padding-top:10px;border-top:1px solid var(--border)}
+.member-danger>summary{min-height:44px;padding:10px 0;color:var(--danger);font-size:13px;font-weight:650;line-height:1.5;cursor:pointer}
+.member-danger>.notice{margin-top:8px}
