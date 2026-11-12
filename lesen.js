@@ -29,7 +29,8 @@ function compactFineListHTML(items,admin=false){
 }
 function voteStatusSymbol(status){return {present:'👍',yes:'👍',absent:'👎',no:'👎',unsure:'❓'}[status]||'';}
 function voteStatusLabel(status){return {present:'Dabei',yes:'Dabei',absent:'Nicht dabei',no:'Nicht dabei',unsure:'Unsicher'}[status]||'Noch keine Antwort';}
-function voteStatusHTML(status){const symbol=voteStatusSymbol(status);return symbol?`<span role="img" aria-label="${voteStatusLabel(status)}">${symbol}</span>`:'Noch offen';}
+function voteStatusIcon(status){return `<span class="vote-symbol" aria-hidden="true">${window.FantastixUI?.voteIcon?.(status)||esc(voteStatusSymbol(status))}</span>`;}
+function voteStatusHTML(status){const symbol=voteStatusSymbol(status);return symbol?`<span role="img" aria-label="${voteStatusLabel(status)}">${voteStatusIcon(status)}</span>`:'Noch offen';}
 function uiSymbol(name,fallback){return `<span class="ui-symbol" aria-hidden="true">${window.FantastixUI?.icon(name)||esc(fallback)}</span>`;}
 // App-Icon: bewusst nur 1 für ungelesen; ohne API bleibt die App unverändert nutzbar.
 let fxBadgeQueue=Promise.resolve();
@@ -191,6 +192,9 @@ function dashboardAttendanceHTML(m){
  const yes=memberOrder().filter(p=>p.active!==false&&effective(m,p.id)?.status==='present'),c=rsvpCounts(m);
  return `<div class="rsvp-preview"><div class="rsvp-faces">${yes.slice(0,8).map(p=>avatarFor(p.id)).join('')}${yes.length>8?`<span class="rsvp-more">+${yes.length-8}</span>`:''}</div>${readerCountSummary(c)}</div>`;
 }
+function nextEventDetails(x){
+ return `<strong class="excursion-title next-event-title">${esc(x.title)}</strong><div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date event-date">${tripDateLabel({...x,time:''})}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${x.time?esc(x.time)+' Uhr':'Uhrzeit noch offen'}</span><span>${uiSymbol('location','⌖')}${esc(x.location||'Ort noch offen')}</span></div><p class="next-organizer event-organizer">${uiSymbol('members','♙')}<span>Organisatoren: ${esc(tripOrganizers(x))}</span></p>`;
+}
 function dashboard(){
  const completed=data.meetings.filter(m=>m.date<today()).sort((a,b)=>b.date.localeCompare(a.date));
  const next=[...data.meetings].filter(m=>m.date>=today()).sort((a,b)=>a.date.localeCompare(b.date))[0];
@@ -208,12 +212,11 @@ function dashboard(){
  ${next?`<div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date">${dateLabel(next.date)}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${esc(timeLabel(next.time))} Uhr</span><span>${uiSymbol('location','⌖')}${esc(next.location||'Gasthaus noch offen')}</span></div>${voteCountdownHTML(deadlines.has(next.id)?new Date(deadlines.get(next.id)).getTime():null)}<p class="next-organizer">${uiSymbol('members','♙')}<span>Organisator: ${esc(memberName(next.organizerId))}</span></p>${section('members')?`${dashboardAttendanceHTML(next)}`:``}<button type="button" class="button dashboard-open" data-reader-meeting="${esc(next.id)}">Stammtisch öffnen →</button>`:'<p class="muted">Noch kein nächster Stammtisch eingetragen.</p>'}</section>
  ${window.FantastiXReaderSettings?.showDailyPhoto()===false?'':window.FantastiXPhotos?.card()||''}
  <section class="card"><h2>Letzte 3 Stammtische</h2>${completed.slice(0,3).length?completed.slice(0,3).map(m=>`<div class="item"><div class="avatar">${esc(m.date.slice(-2))}</div><div class="details"><strong>${dateLabel(m.date)}</strong><small>${esc(m.location||'Ohne Gasthaus')} · ${data.members.filter(p=>effective(m,p.id)?.status==='present').length} anwesend</small></div></div>`).join(''):'<p class="muted">Noch keine Stammtische.</p>'}</section>
- ${section('excursions')?`<section class="card excursion-preview"><div class="row"><h2>Nächster Event</h2>${nextTrip()?termStatusHTML(eventStatus(nextTrip())):'<span class="chip gray">Nicht geplant</span>'}</div>${nextTrip()?`<strong class="excursion-title">${esc(nextTrip().title)}</strong><p class="event-date">${tripDateLabel(nextTrip())}</p><p class="event-organizer">Organisatoren: ${esc(tripOrganizers(nextTrip()))}</p><button class="ghost" data-reader-excursion="${esc(nextTrip().id)}" type="button">Öffnen →</button>`:'<p class="muted">Noch kein Event geplant.</p>'}</section>`:''}
+ ${section('excursions')?`<section class="card next-card excursion-preview"><div class="row"><h2>Nächster Event</h2>${nextTrip()?termStatusHTML(eventStatus(nextTrip())):'<span class="chip gray">Nicht geplant</span>'}</div>${nextTrip()?`${nextEventDetails(nextTrip())}<button class="ghost" data-reader-excursion="${esc(nextTrip().id)}" type="button">Öffnen →</button>`:'<p class="muted">Noch kein Event geplant.</p>'}</section>`:''}
  ${strongestStreakHTML()}`;
 }
 function voteChoiceContent(symbol,label){
- const name={present:'thumbsUp',yes:'thumbsUp',unsure:'question',absent:'thumbsDown',no:'thumbsDown'}[symbol];
- return `<span class="vote-choice-icon" aria-hidden="true">${window.FantastixUI?.icon(name)||esc({thumbsUp:'👍',question:'?',thumbsDown:'👎'}[name])}</span><span class="vote-choice-label">${esc(label)}</span>`;
+ return `<span class="vote-choice-icon" aria-hidden="true">${window.FantastixUI?.voteIcon?.(symbol)||esc(voteStatusSymbol(symbol))}</span><span class="vote-choice-label">${esc(label)}</span>`;
 }
 function showVotePending(kind,id,status){
  // Keep the existing button nodes alive so press/color transitions can finish.
@@ -241,7 +244,7 @@ function votePanel(m,compact=false){
 }
 function coalesceSource(a){return a.source||'admin';}
 function readerEntryBack(label){return `<button type="button" class="smallbtn reader-entry-back" data-reader-back>← ${readerEntry?.from==='dashboard'?'Zum Dashboard':'Zurück zu '+label}</button>`;}
-function readerCountSummary(count){return `<span class="reader-counts"><span role="img" aria-label="${count.yes} Zusagen">👍 ${count.yes}</span><span role="img" aria-label="${count.no} Absagen">👎 ${count.no}</span><span role="img" aria-label="${count.unsure||0} unsicher">❓ ${count.unsure||0}</span></span>`;}
+function readerCountSummary(count){return `<span class="reader-counts"><span role="img" aria-label="${count.yes} Zusagen">${voteStatusIcon('present')} ${count.yes}</span><span role="img" aria-label="${count.no} Absagen">${voteStatusIcon('absent')} ${count.no}</span><span role="img" aria-label="${count.unsure||0} unsicher">${voteStatusIcon('unsure')} ${count.unsure||0}</span></span>`;}
 function meetings(){
  if(!section('meetings'))return empty('Stammtische sind nicht freigegeben.');
  if(readerEntry?.kind==='meeting'&&data.meetings.some(m=>m.id===readerEntry.id))return meetingDetails(readerEntry.id);
@@ -779,10 +782,10 @@ function askAbsenceReason(meetingId){
  const meeting=data?.meetings?.find(m=>m.id===meetingId);
  const saved=meeting?effective(meeting,profile?.member_id):null;
  const dlg=$('#absence-dialog');
- dlg.innerHTML=`<div class="modalbody"><div class="modalhead"><h2>Grund für 👎</h2><button type="button" class="close" id="close-absence" aria-label="Schließen">×</button></div>
+ dlg.innerHTML=`<div class="modalbody"><div class="modalhead"><h2>${voteStatusIcon('absent')} Grund für Absage</h2><button type="button" class="close" id="close-absence" aria-label="Schließen">×</button></div>
  <form id="absence-reason-form"><input type="hidden" name="meetingId" value="${esc(meetingId)}"><div class="field"><label>Abwesenheitsgrund *</label>
  <input name="reason" maxlength="150" minlength="1" value="${esc(saved?.status==='absent'?saved.reason||'':'')}" placeholder="z. B. Urlaub, beruflich verhindert" required autofocus></div>
- <div class="foot"><button type="button" class="ghost" id="cancel-absence">Abbrechen</button><button type="submit" class="button" aria-label="Absage speichern">👎 Speichern</button></div></form></div>`;
+ <div class="foot"><button type="button" class="ghost" id="cancel-absence">Abbrechen</button><button type="submit" class="button" aria-label="Absage speichern">${voteStatusIcon('absent')} Speichern</button></div></form></div>`;
  dlg.showModal();
 }
 document.addEventListener('submit',e=>{

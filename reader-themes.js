@@ -3,11 +3,11 @@
 'use strict';
 const themes=[
  {id:'standard',name:'Standard',description:'Aktuelles Design',color:'#151515'},
- {id:'dark',name:'Dunkel',description:'Dunkel & ruhig',color:'#10151e'},
- {id:'blue',name:'Blau',description:'Sanftes Eisblau',color:'#d9e5f4'},
- {id:'green',name:'Grün',description:'Salbei & Creme',color:'#dce5d7'},
- {id:'violet',name:'Violett',description:'Modern & weich',color:'#eee7f7'},
- {id:'sand',name:'Sand',description:'Warm & reduziert',color:'#ede4d4'}
+ {id:'dark',name:'Graphit',description:'Graphit & Türkis',color:'#10191c'},
+ {id:'blue',name:'Azur',description:'Azur & Eis',color:'#edf3fc'},
+ {id:'green',name:'Wald',description:'Wald & Mint',color:'#eef5f1'},
+ {id:'violet',name:'Pflaume',description:'Pflaume & Flieder',color:'#f5eff9'},
+ {id:'sand',name:'Kupfer',description:'Kupfer & Hafer',color:'#f7f0e6'}
 ],key='fantastix.reader.theme.device.v1',root=document.documentElement;
 const meta=document.querySelector('meta[name="theme-color"]'),originalColor=meta?.content;
 const photoKey='fantastix.reader.daily-photo.device.v1';

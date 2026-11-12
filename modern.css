@@ -203,3 +203,14 @@ dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px))
 @keyframes inbox-backdrop{from{opacity:0}to{opacity:1}}
 @keyframes inbox-backdrop-out{from{opacity:1}to{opacity:0}}
 @media(prefers-reduced-motion:reduce){.fx-inbox-dialog[open],.fx-inbox-dialog.is-closing,.fx-inbox-dialog::backdrop,.fx-inbox-dialog.is-closing::backdrop{animation:none}.fx-inbox-dialog button{transition:none}.fx-inbox-dialog button:not(:disabled):active{transform:none}}
+
+/* One vote icon set, from action buttons to compact summaries and histories. */
+.vote-symbol{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;flex:0 0 auto;vertical-align:-.15em;line-height:1}
+.vote-symbol svg{display:block;width:100%;height:100%}
+.reader-counts>span[role="img"]{display:inline-flex;align-items:center;gap:5px}
+.reader-counts>span[role="img"] .vote-symbol{color:inherit}
+.member-att .seg .vote-symbol,.excursion-admin-choice .vote-symbol{width:20px;height:20px;vertical-align:middle}
+.next-event-title{display:block;margin:0 0 2px;font-size:17px;line-height:1.4;overflow-wrap:anywhere}
+/* Keep the existing event action's spacing despite sharing the meeting card shell. */
+.excursion-preview.next-card .ghost{margin-top:0}
+#excursion-vote-count .reader-counts{display:inline-flex;vertical-align:middle}
