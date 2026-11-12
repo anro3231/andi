@@ -19,7 +19,7 @@ function setup(admin){
   assert.deepEqual(ids(),['today','next','later','recent','old']);
   assert.deepEqual([...root().querySelectorAll('.term-list')].map(g=>g.getAttribute('aria-label')),['Anstehend','Vergangen']);
   const next=root().querySelector(admin?'[data-id=next]':'[data-reader-meeting=next]');
-  assert.equal(next.querySelector('.term-date-badge').textContent,'13NOV');assert.equal(next.querySelector('.term-date-badge').getAttribute('aria-hidden'),'true');
+  assert.equal(next.querySelector('.term-date-badge').textContent,'13NOV');assert.equal(next.querySelector('.term-date-badge').getAttribute('aria-hidden'),'true');assert.equal(next.querySelector('.reader-entry-info strong').textContent,'Freitag');assert.equal(next.querySelector('.reader-entry-info small').textContent,'2026');
   assert.equal(next.querySelectorAll('.term-entry-meta svg').length,3);assert.match(next.textContent,/18:30 Uhr/);assert.match(next.textContent,/Gasthaus <Ort>/);assert.match(next.textContent,/Alex <A>/);assert.equal(next.querySelector('ort'),null);
   assert.ok(next.querySelector('[aria-label="1 Zusagen"] svg'));assert.equal(next.querySelectorAll('button').length,0,'Whole row is one action, no nested controls');
   assert.match(root().querySelector('.reader-entry').textContent,/Heute/);
@@ -28,7 +28,7 @@ function setup(admin){
   run(admin?"adminEntry=null;page='excursions';render();":"readerEntry=null;tab='excursions';renderApp();");
   assert.deepEqual(ids(),['ongoing','early','late','undated','closed','past']);
   assert.deepEqual([...root().querySelectorAll('.term-list')].map(g=>g.getAttribute('aria-label')),['Anstehend','Noch ohne Termin','Vergangen']);
-  const early=root().querySelector(admin?'[data-id=early]':'[data-reader-excursion=early]');assert.equal(early.querySelectorAll('.term-entry-meta svg').length,4);assert.equal(early.querySelector('.reader-entry-info strong').textContent,'Event <Test>');assert.match(early.textContent,/18:00 Uhr/);assert.equal((early.textContent.match(/18:00/g)||[]).length,1);
+  const early=root().querySelector(admin?'[data-id=early]':'[data-reader-excursion=early]');assert.equal(early.querySelectorAll('.term-entry-meta svg').length,4);assert.equal(early.querySelector('.term-entry-title').textContent,'Event <Test>');assert.match(early.textContent,/18:00 Uhr/);assert.equal((early.textContent.match(/18:00/g)||[]).length,1);
   const ongoing=root().querySelector(admin?'[data-id=ongoing]':'[data-reader-excursion=ongoing]');assert.match(ongoing.textContent,/Läuft/);assert.match(ongoing.textContent,/–/);
   const undated=root().querySelector(admin?'[data-id=undated]':'[data-reader-excursion=undated]');assert.match(undated.textContent,/Termin offen/);assert.match(undated.textContent,/Uhrzeit noch offen/);assert.match(undated.textContent,/Ort noch offen/);assert.doesNotMatch(undated.textContent,/NaN|undefined/);
   early.querySelector('.term-entry-open svg').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));await Promise.resolve();assert.equal(run(admin?'adminEntry.kind':'readerEntry.kind'),'excursion');assert.equal(run(admin?'adminEntry.id':'readerEntry.id'),'early');
