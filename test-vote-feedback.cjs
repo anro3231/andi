@@ -21,8 +21,8 @@ run("cloud=window.mock;refresh=async()=>{const call=window.calls.at(-1);if(call.
  assert.equal(doc.querySelectorAll('.next-card [data-vote]').length,0,'Only the requested existing detail flow is changed');
  run("openReaderEntry('meeting','m')");
  const meetingHeader=doc.querySelector('.meeting-card .term-detail-header');
- assert.equal(meetingHeader.querySelector('.term-date-badge').textContent,'1JAN');assert.equal(meetingHeader.querySelector('.reader-entry-info small').textContent,'2099');
- assert.equal(meetingHeader.querySelectorAll('.term-detail-meta svg').length,4);assert.match(meetingHeader.textContent,/18:30 Uhr/);assert.match(meetingHeader.textContent,/Ort <Test>/);assert.match(meetingHeader.textContent,/Anna <A>/);assert.equal(meetingHeader.querySelector('test,a'),null);
+ assert.equal(meetingHeader.querySelector('.next-date').textContent,run("dateLabel('2099-01-01')"));assert.ok(meetingHeader.querySelector('.next-calendar svg'));assert.equal(meetingHeader.querySelector('.meeting-status'),null);assert.equal(meetingHeader.querySelector('.reader-entry-end'),null);assert.equal(meetingHeader.querySelectorAll('.next-date').length,1);assert.doesNotMatch(meetingHeader.querySelector('.term-detail-meta').textContent,/2099/);
+ assert.equal(meetingHeader.querySelectorAll('.term-detail-meta svg').length,3);assert.match(meetingHeader.textContent,/18:30 Uhr/);assert.match(meetingHeader.textContent,/Ort <Test>/);assert.match(meetingHeader.textContent,/Anna <A>/);assert.equal(meetingHeader.querySelector('test,a'),null);
 
  const choice=doc.querySelector('[data-vote="unsure"]');
  assert.equal(choice.textContent,'Unsicher');assert.ok(choice.querySelector('svg'));
@@ -46,7 +46,7 @@ run("cloud=window.mock;refresh=async()=>{const call=window.calls.at(-1);if(call.
  await run("castVote('m','absent')");assert.equal(w.calls.length,count,'Absence still requires a reason');
  run("deadlines.set('m','2000-01-01T00:00:00Z')");await run("castVote('m','present')");assert.equal(w.calls.length,count,'Expired vote is blocked');
  run("Object.assign(data.excursions[0],{title:'Abend <Event>',endDate:'2099-01-03',time:'20:00',location:'Ort <Event>',notes:'Info <Text>'});openReaderEntry('excursion','e')");
- const eventHeader=doc.querySelector('.excursion-card .term-detail-header');assert.equal(eventHeader.querySelector('h2').textContent,'Abend <Event>');assert.equal(eventHeader.querySelectorAll('.term-detail-meta svg').length,4);assert.match(eventHeader.querySelector('.term-detail-meta').textContent,/–/);assert.equal((eventHeader.textContent.match(/20:00/g)||[]).length,1);assert.equal(doc.querySelector('.term-detail-description').textContent,'Info <Text>');
+ const eventHeader=doc.querySelector('.excursion-card .term-detail-header');assert.equal(eventHeader.querySelector('h2').textContent,'Abend <Event>');assert.equal(eventHeader.querySelectorAll('.term-detail-meta svg').length,3);assert.match(eventHeader.querySelector('.next-date').textContent,/–/);assert.equal(eventHeader.querySelector('.meeting-status'),null);assert.doesNotMatch(eventHeader.querySelector('.term-detail-meta').textContent,/2099/);assert.equal((eventHeader.textContent.match(/20:00/g)||[]).length,1);assert.equal(doc.querySelector('.term-detail-description').textContent,'Info <Text>');
 
  const eventChoice=doc.querySelector('[data-excursion-vote="yes"]');
  const eventPending=run("voteExcursion('e','yes')");
