@@ -2,6 +2,12 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.2
+
+- Einheitliche SVG-Symbole für Daumen hoch, Daumen runter und Fragezeichen in Auswahlbuttons, Summen, Rückmeldungen, Historien und Admin-Korrekturen.
+- Fünf neu abgestimmte Farbpaletten: Graphit/Türkis, Azur/Eis, Wald/Mint, Pflaume/Flieder und Kupfer/Hafer. Bestehende Gerätepräferenzen bleiben erhalten; das Standarddesign behält seine Farben.
+- „Nächster Event“ verwendet dieselben Metadaten-Icons und dieselbe Kartenstruktur wie „Nächster Stammtisch“. Der bisherige Öffnen-Button bleibt bestehen.
+
 ## Version 4.0.1
 
 - Gemeinsames Benachrichtigungsfenster im Lese- und Adminmodus mit einer Überschrift ohne zusätzliches Glockensymbol.

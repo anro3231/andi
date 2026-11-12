@@ -29,7 +29,8 @@ function compactFineListHTML(items,admin=false){
 }
 function voteStatusSymbol(status){return {present:'👍',yes:'👍',absent:'👎',no:'👎',unsure:'❓'}[status]||'';}
 function voteStatusLabel(status){return {present:'Dabei',yes:'Dabei',absent:'Nicht dabei',no:'Nicht dabei',unsure:'Unsicher'}[status]||'Noch keine Antwort';}
-function voteStatusHTML(status){const symbol=voteStatusSymbol(status);return symbol?`<span role="img" aria-label="${voteStatusLabel(status)}">${symbol}</span>`:'Noch offen';}
+function voteStatusIcon(status){return `<span class="vote-symbol" aria-hidden="true">${window.FantastixUI?.voteIcon?.(status)||esc(voteStatusSymbol(status))}</span>`;}
+function voteStatusHTML(status){const symbol=voteStatusSymbol(status);return symbol?`<span role="img" aria-label="${voteStatusLabel(status)}">${voteStatusIcon(status)}</span>`:'Noch offen';}
 function uiSymbol(name,fallback){return `<span class="ui-symbol" aria-hidden="true">${window.FantastixUI?.icon(name)||esc(fallback)}</span>`;}
 // App-Icon: bewusst nur 1 für ungelesen; ohne API bleibt die App unverändert nutzbar.
 let fxBadgeQueue=Promise.resolve();
@@ -47,7 +48,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.0.1";
+const APP_VERSION = window.FX_VERSION || "4.0.2";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -312,6 +313,9 @@ function dashboardAttendanceHTML(m){
  const people=data.members.filter(p=>p.active!==false),yes=people.filter(p=>effectiveAttendance(m,p.id)?.status==='present');
  return `<div class="rsvp-preview"><div class="rsvp-faces">${yes.slice(0,8).map(p=>memberAvatar(p.id,initials(p.name))).join('')}${yes.length>8?`<span class="rsvp-more">+${yes.length-8}</span>`:''}</div>${adminCountSummary({yes:yes.length,no:people.filter(p=>effectiveAttendance(m,p.id)?.status==='absent').length,unsure:people.filter(p=>effectiveAttendance(m,p.id)?.status==='unsure').length})}</div>`;
 }
+function nextEventDetails(x){
+ return `<strong class="excursion-title next-event-title">${esc(x.title)}</strong><div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date event-date">${excursionPeriod({...x,time:''})}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${x.time?esc(x.time)+' Uhr':'Uhrzeit noch offen'}</span><span>${uiSymbol('location','⌖')}${esc(x.location||'Ort noch offen')}</span></div><p class="next-organizer event-organizer">${uiSymbol('members','♙')}<span>Organisatoren: ${esc(excursionOrganizers(x))}</span></p>`;
+}
 function homeHTML(){
  const completed=data.meetings.filter(m=>m.date<today()).sort((a,b)=>b.date.localeCompare(a.date));
  const latest=completed.slice(0,3),next=upcomingMeeting(),days=next?calendarDaysUntil(next.date):null;
@@ -331,8 +335,8 @@ function homeHTML(){
    ${next?`<div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date">${fmtDate(next.date)}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${esc(next.time||'18:30')} Uhr</span><span>${uiSymbol('location','⌖')}${esc(next.location||'Gasthaus noch offen')}</span></div>${voteCountdownHTML(meetingVoteDeadline(next))}${dashboardAttendanceHTML(next)}${organizer?`<p class="next-organizer">${uiSymbol('members','♙')}<span>Organisator: ${esc(organizer.name)}</span></p>`:''}<button class="button dashboard-open" data-action="meeting-edit" data-id="${next.id}">Stammtisch öffnen</button>`:'<p class="muted">Noch kein nächster Stammtisch eingetragen.</p>'}
   </section>
   <section class="card"><h2>Letzte 3 Stammtische</h2>${latest.length?`<div class="list">${latest.map(m=>`<div class="item"><div class="avatar">${String(new Date(m.date+'T12:00:00').getDate()).padStart(2,'0')}</div><div class="details"><strong>${fmtDate(m.date)}</strong><small>${esc(m.location||'Ohne Gasthaus')} · ${data.members.filter(person=>effectiveAttendance(m,person.id)?.status==='present').length} anwesend</small></div><button class="smallbtn" data-action="meeting-edit" data-id="${m.id}">Öffnen</button></div>`).join('')}</div>`:empty('📅','Noch keine Stammtische')}</section>
-  <section class="card excursion-preview"><div class="row"><h2>Nächster Event</h2>${nextExcursion()?termStatusHTML(eventStatus(nextExcursion())):'<span class="chip gray">Nicht geplant</span>'}</div>
-   ${nextExcursion()?`<strong class="excursion-title">${esc(nextExcursion().title)}</strong><p class="event-date">${excursionPeriod(nextExcursion())}</p><p class="event-organizer">Organisatoren: ${esc(excursionOrganizers(nextExcursion()))}</p><button class="ghost" data-page="excursions">Events ansehen →</button>`:`<p class="muted">Noch kein Event geplant.</p><button class="ghost" data-action="excursion-new">+ Event planen</button>`}
+  <section class="card next-card excursion-preview"><div class="row"><h2>Nächster Event</h2>${nextExcursion()?termStatusHTML(eventStatus(nextExcursion())):'<span class="chip gray">Nicht geplant</span>'}</div>
+   ${nextExcursion()?`${nextEventDetails(nextExcursion())}<button class="ghost" data-page="excursions">Events ansehen →</button>`:`<p class="muted">Noch kein Event geplant.</p><button class="ghost" data-action="excursion-new">+ Event planen</button>`}
   </section>${strongestStreakHTML()}`;
 }
 async function loadOnlinePresenceAdmin(){
@@ -364,7 +368,7 @@ function loadMoreMemberHistory(id){
  const activity=$('#member-activity');if(activity)activity.innerHTML=memberActivityHTML(id);
 }
 function membersHTML(){const members=[...data.members].sort(byMemberNo);return `${pageHead('','Mitglieder','')}<div class="toolbar"><button class="button" data-action="member-new">+ Mitglied</button><span class="muted tiny">${data.members.length} Mitglieder</span></div><div class="card reader-entry-list">${members.length?members.map(m=>`<div class="reader-entry member-list-row">${memberAvatar(m.id,memberNo(m)===null?initials(m.name):String(memberNo(m)))}<button type="button" class="member-open" data-action="member-edit" data-id="${esc(m.id)}"><span class="reader-entry-info member-entry-info"><strong>${memberNo(m)===null?'':`Nr. ${memberNo(m)} · `}${esc(m.name)} ${m.active===false?'<span class="chip gray">Archiv</span>':''}</strong><small class="member-last-online">${esc(memberLastOnline(m.id))}</small></span><span class="reader-entry-end">Öffnen ›</span></button></div>`).join(''):empty('👥','Noch keine Mitglieder')}</div>`;}
-function adminCountSummary(count){return `<span class="reader-counts"><span role="img" aria-label="${count.yes} Zusagen">👍 ${count.yes}</span><span role="img" aria-label="${count.no} Absagen">👎 ${count.no}</span><span role="img" aria-label="${count.unsure||0} unsicher">❓ ${count.unsure||0}</span></span>`;}
+function adminCountSummary(count){return `<span class="reader-counts"><span role="img" aria-label="${count.yes} Zusagen">${voteStatusIcon('present')} ${count.yes}</span><span role="img" aria-label="${count.no} Absagen">${voteStatusIcon('absent')} ${count.no}</span><span role="img" aria-label="${count.unsure||0} unsicher">${voteStatusIcon('unsure')} ${count.unsure||0}</span></span>`;}
 function meetingsHTML(){
  const meetings=[...data.meetings].sort((a,b)=>b.date.localeCompare(a.date));
  return `${pageHead('','Stammtische','')}<div class="toolbar"><button class="button" data-action="meeting-new">+ Neuer Stammtisch</button></div>
@@ -380,7 +384,7 @@ function excursionsHTML(){
  <section class="card reader-entry-list">${list.map(x=>`<button type="button" class="reader-entry" data-action="excursion-edit" data-id="${esc(x.id)}" aria-label="Event ${esc(x.title)} öffnen"><span class="reader-entry-info"><strong>${esc(x.title)}</strong><span>${excursionPeriod(x)}${x.location?' · '+esc(x.location):''}</span><small>Organisatoren: ${esc(excursionOrganizers(x))}</small>${adminCountSummary(excursionVoteCounts(x.id))}</span><span class="reader-entry-end">${termStatusHTML(eventStatus(x))}<span>Öffnen ›</span></span></button>`).join('')||'<p class="muted">Noch keine Events eingetragen.</p>'}</section>
  <p class="hint">Events beeinflussen weder Ranglisten noch Strafenkassa.</p>`;
 }
-function eventVoteSummary(id){const c=excursionVoteCounts(id);return `👍 ${c.yes} · 👎 ${c.no} · ❓ ${c.unsure}`;}
+function eventVoteSummary(id){return adminCountSummary(excursionVoteCounts(id));}
 function excursionForm(id){
  const x=(data.excursions||[]).find(v=>v.id===id)||{id:'',title:'',date:'',endDate:'',location:'',notes:'',organizerIds:[],organizerOther:'',completed:false};
  const already=excursionVotes.filter(v=>v.excursion_id===x.id);
@@ -397,7 +401,7 @@ function excursionForm(id){
    <div class="details"><strong>${esc(m.name)}${isMine?' <span class="chip">Ich</span>':''}</strong>
    <small class="excursion-vote-label">${voteStatusHTML(v?.status)}</small>${voteStampHTML(v?.updated_at,!!(v?.admin_cast||v?.admin_locked))}${v?.status==='yes'&&v.note?`<small class="vote-note">📝 ${esc(v.note)}</small>`:''}</div>
    <div class="excursion-admin-vote-buttons" role="group" aria-label="Eventszusage für ${esc(m.name)}">
-    ${[['yes','👍'],['unsure','❓'],['no','👎'],['clear','Offen']].map(([status,label])=>`<button type="button" class="excursion-admin-choice ${(!v&&status==='clear')||v?.status===status?'is-selected':''}" data-action="excursion-admin-vote" data-id="${esc(x.id)}" data-member="${esc(m.id)}" data-status="${status}" aria-label="${status==='yes'?'Dabei':status==='no'?'Nicht dabei':status==='unsure'?'Unsicher':'Offen'}" aria-pressed="${String((!v&&status==='clear')||v?.status===status)}" ${!cloudReady||!!excursionVoteWarning?'disabled':''}>${label}</button>`).join('')}
+    ${[['yes','Dabei'],['unsure','Unsicher'],['no','Nicht dabei'],['clear','Offen']].map(([status,label])=>`<button type="button" class="excursion-admin-choice ${(!v&&status==='clear')||v?.status===status?'is-selected':''}" data-action="excursion-admin-vote" data-id="${esc(x.id)}" data-member="${esc(m.id)}" data-status="${status}" aria-label="${status==='yes'?'Dabei':status==='no'?'Nicht dabei':status==='unsure'?'Unsicher':'Offen'}" aria-pressed="${String((!v&&status==='clear')||v?.status===status)}" ${!cloudReady||!!excursionVoteWarning?'disabled':''}>${status==='clear'?label:voteStatusIcon(status)}</button>`).join('')}
    </div></div>`;
  }).join('')}</div>`:'';
  openAdminEntry(id?'Event bearbeiten':'Event planen',`<form data-form="excursion"><input type="hidden" name="id" value="${esc(x.id)}">
@@ -417,10 +421,10 @@ function updateExcursionVoteControls(id){
  const dialog=adminEditorRoot();if(!dialog)return;
  const form=dialog.querySelector('form[data-form="excursion"]');if(!form||form.elements.id.value!==id)return;
  const selected=excursionVotes.filter(v=>v.excursion_id===id);
- const counter=dialog.querySelector('#excursion-vote-count');if(counter)counter.textContent=eventVoteSummary(id);
+ const counter=dialog.querySelector('#excursion-vote-count');if(counter)counter.innerHTML=eventVoteSummary(id);
  for(const row of dialog.querySelectorAll('[data-excursion-row]')){
   const v=selected.find(r=>r.member_id===row.dataset.excursionRow),label=row.querySelector('.excursion-vote-label');
-  if(label){label.setAttribute('aria-label',voteStatusLabel(v?.status));label.textContent=(voteStatusSymbol(v?.status)||'Noch offen');let stamp=row.querySelector('.vote-stamp');if(v?.updated_at||v?.admin_cast||v?.admin_locked){if(!stamp){stamp=document.createElement('small');stamp.className='vote-stamp';label.parentElement.appendChild(stamp);}stamp.textContent=voteStampText(v.updated_at,!!(v.admin_cast||v.admin_locked));}else stamp?.remove();let note=row.querySelector('.vote-note');if(v?.status==='yes'&&v.note){if(!note){note=document.createElement('small');note.className='vote-note';label.parentElement.appendChild(note);}note.textContent='📝 '+v.note;label.parentElement.appendChild(note);}else note?.remove();}
+  if(label){label.setAttribute('aria-label',voteStatusLabel(v?.status));label.innerHTML=voteStatusHTML(v?.status);let stamp=row.querySelector('.vote-stamp');if(v?.updated_at||v?.admin_cast||v?.admin_locked){if(!stamp){stamp=document.createElement('small');stamp.className='vote-stamp';label.parentElement.appendChild(stamp);}stamp.textContent=voteStampText(v.updated_at,!!(v.admin_cast||v.admin_locked));}else stamp?.remove();let note=row.querySelector('.vote-note');if(v?.status==='yes'&&v.note){if(!note){note=document.createElement('small');note.className='vote-note';label.parentElement.appendChild(note);}note.textContent='📝 '+v.note;label.parentElement.appendChild(note);}else note?.remove();}
   for(const button of row.querySelectorAll('[data-action="excursion-admin-vote"]')){
    const chosen=v?button.dataset.status===v.status:button.dataset.status==='clear';
    button.classList.toggle('is-selected',chosen);button.setAttribute('aria-pressed',String(chosen));
@@ -605,7 +609,7 @@ function meetingForm(id){
  <div class="field"><label>Organisator</label><select name="organizerId" data-organizer-auto="${id?'off':'on'}"><option value="">Nicht festgelegt</option>${organizerMembers.map(person=>`<option value="${person.id}" ${proposed===person.id?'selected':''}>${memberNo(person)!==null?'Nr. '+memberNo(person)+' · ':''}${esc(person.name)}</option>`).join('')}</select></div>
  <div class="field"><label>Notizen</label><textarea name="notes" maxlength="1000" placeholder="Optional">${esc(m.notes||'')}</textarea></div>
  <h3>Anwesenheit</h3>
- ${attendanceMembers.length?attendanceMembers.map(person=>{const entry=m.attendance?.[person.id]||{};const linkedFine=data.fines.find(f=>f.meetingId===m.id&&f.memberId===person.id&&f.source==='absence');return `<div class="member-att"><div class="row"><strong>${memberNo(person)!==null?'Nr. '+memberNo(person)+' · ':''}${esc(person.name)}</strong><div class="seg"><button type="button" class="${entry.status==='present'?'on yes':''}" data-action="attend" data-id="${person.id}" data-status="present" aria-pressed="${entry.status==='present'}" aria-label="Dabei">👍</button><button type="button" class="${entry.status==='unsure'?'on unsure':''}" data-action="attend" data-id="${person.id}" data-status="unsure" aria-pressed="${entry.status==='unsure'}" aria-label="Unsicher">❓</button><button type="button" class="${entry.status==='absent'?'on no':''}" data-action="attend" data-id="${person.id}" data-status="absent" aria-pressed="${entry.status==='absent'}" aria-label="Nicht dabei">👎</button></div></div><input type="hidden" name="status-${person.id}" value="${esc(entry.status||'')}">${absenceFields(person.id,entry,linkedFine)}${voteStampHTML(entry.updatedAt,entry.source==='admin')}<small class="vote-note" data-meeting-member-note="${esc(person.id)}" ${['present','unsure'].includes(entry.status)&&entry.note?'':'hidden'}>${entry.note?'📝 '+esc(entry.note):''}</small></div>`}).join(''):empty('👥','Noch keine Mitglieder')}
+ ${attendanceMembers.length?attendanceMembers.map(person=>{const entry=m.attendance?.[person.id]||{};const linkedFine=data.fines.find(f=>f.meetingId===m.id&&f.memberId===person.id&&f.source==='absence');return `<div class="member-att"><div class="row"><strong>${memberNo(person)!==null?'Nr. '+memberNo(person)+' · ':''}${esc(person.name)}</strong><div class="seg"><button type="button" class="${entry.status==='present'?'on yes':''}" data-action="attend" data-id="${person.id}" data-status="present" aria-pressed="${entry.status==='present'}" aria-label="Dabei">${voteStatusIcon('present')}</button><button type="button" class="${entry.status==='unsure'?'on unsure':''}" data-action="attend" data-id="${person.id}" data-status="unsure" aria-pressed="${entry.status==='unsure'}" aria-label="Unsicher">${voteStatusIcon('unsure')}</button><button type="button" class="${entry.status==='absent'?'on no':''}" data-action="attend" data-id="${person.id}" data-status="absent" aria-pressed="${entry.status==='absent'}" aria-label="Nicht dabei">${voteStatusIcon('absent')}</button></div></div><input type="hidden" name="status-${person.id}" value="${esc(entry.status||'')}">${absenceFields(person.id,entry,linkedFine)}${voteStampHTML(entry.updatedAt,entry.source==='admin')}<small class="vote-note" data-meeting-member-note="${esc(person.id)}" ${['present','unsure'].includes(entry.status)&&entry.note?'':'hidden'}>${entry.note?'📝 '+esc(entry.note):''}</small></div>`}).join(''):empty('👥','Noch keine Mitglieder')}
  ${id?'<small id="member-cloud-notes" class="muted tiny" role="status">Mitgliedernotizen werden geladen …</small>':''}
  ${footer(id?'Speichern':'Stammtisch speichern')}${id?`<div class="separator"></div><button type="button" class="danger-btn" data-action="meeting-delete" data-id="${m.id}">Stammtisch löschen</button>`:''}</form>`,'meeting',id);
  if(id)loadAdminMeetingNotes(id);

@@ -16,7 +16,7 @@ run("cloud=window.mock;refresh=async()=>{const call=window.calls.at(-1);if(call.
  run("tab='dashboard';renderApp()");
  assert.equal(doc.querySelector('.title').textContent,'Servus, Anna <A>');
  assert.equal(doc.querySelector('.title a'),null);
- assert.equal(doc.querySelectorAll('.next-card .next-meta svg').length,2);
+ assert.equal(doc.querySelectorAll('.next-card:not(.excursion-preview) .next-meta svg').length,2);
  assert.equal(doc.querySelector('.next-place').textContent,'18:30 UhrOrt <Test>');
  assert.equal(doc.querySelectorAll('.next-card [data-vote]').length,0,'Only the requested existing detail flow is changed');
  run("openReaderEntry('meeting','m')");
