@@ -2,7 +2,7 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
-## Version 4.0.10
+## Version 4.1.0
 
 - Abstimmungsdetails für Stammtische und Events verwenden dieselbe Datumszeile mit Kalender-Icon wie Dashboard und Terminlisten.
 - Status-Badge und doppelte Datumszeile über der Uhrzeit entfallen. Mehrtägige und noch offene Termine bleiben erkennbar.
