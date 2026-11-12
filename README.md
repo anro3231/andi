@@ -2,6 +2,11 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.0.3
+
+- Das Datum bei „Nächster Event“ ist kleiner und leichter gewichtet, mit derselben Textfarbe wie bei „Nächster Stammtisch“.
+- Unter den Abstimmknöpfen entfällt der reservierte Leerraum. Die Speichermeldung benötigt nur Platz, wenn sie tatsächlich angezeigt wird.
+
 ## Version 4.0.2
 
 - Einheitliche SVG-Symbole für Daumen hoch, Daumen runter und Fragezeichen in Auswahlbuttons, Summen, Rückmeldungen, Historien und Admin-Korrekturen.
