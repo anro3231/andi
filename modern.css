@@ -211,7 +211,7 @@ dialog.fx-inbox-dialog{position:fixed;inset:0;width:min(600px,calc(100% - 24px))
 .reader-counts>span[role="img"]{display:inline-flex;align-items:center;gap:5px}
 .reader-counts>span[role="img"] .vote-symbol{color:inherit}
 .member-att .seg .vote-symbol,.excursion-admin-choice .vote-symbol{width:20px;height:20px;vertical-align:middle}
-.next-event-title{display:block;margin:0 0 2px;font-size:17px;line-height:1.4;overflow-wrap:anywhere}
+.next-event-title{display:block;margin:0 0 10px;font-size:17px;line-height:1.4;overflow-wrap:anywhere}
 /* Keep the existing event action's spacing despite sharing the meeting card shell. */
 .excursion-preview.next-card .ghost{margin-top:0}
 #excursion-vote-count .reader-counts{display:inline-flex;vertical-align:middle}
