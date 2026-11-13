@@ -48,7 +48,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.1.4";
+const APP_VERSION = window.FX_VERSION || "4.1.5";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -407,6 +407,10 @@ function calendarHTML(){return `${pageHead('','Kalender','Stammtische, Events un
 function termStatusHTML(label){const kind={'Heute':'today','Geplant':'planned','Vergangen':'past','Abgeschlossen':'closed','Läuft':'live','In Planung':'draft'}[label]||'draft';return `<span class="chip meeting-status status-${kind}">${esc(label)}</span>`;}
 function eventIsPast(x){return !!x.completed||!!(x.endDate||x.date)&&(x.endDate||x.date)<today();}
 function eventStatus(x){if(x.completed)return 'Abgeschlossen';if(eventIsPast(x))return 'Vergangen';if(!x.date)return 'In Planung';if(x.date>today())return 'Geplant';if(x.endDate&&x.endDate>x.date)return 'Läuft';return x.date===today()?'Heute':'Vergangen';}
+function eventDeadlineInput(value){if(!value)return '';const d=new Date(value);if(!Number.isFinite(d.getTime()))return '';const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(p=>[p.type,p.value]));return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;}
+function eventDeadlineISO(value){if(!value)return '';const m=/^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)$/.exec(value);if(!m)return null;const wall=Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]),fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}),local=ms=>{const p=Object.fromEntries(fmt.formatToParts(new Date(ms)).map(x=>[x.type,x.value]));return Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute);};let ms=wall;for(let i=0;i<4;i++)ms+=wall-local(ms);return local(ms)===wall?new Date(ms).toISOString():null;}
+function eventEndDeadline(x){const end=x?.endDate||x?.date;if(!/^\d{4}-\d{2}-\d{2}$/.test(end||''))return null;return Date.parse(eventDeadlineISO(end+'T23:59')||'')+59999;}
+function eventVoteDeadline(x){if(x?.voteDeadlineAt){const custom=Date.parse(x.voteDeadlineAt);if(Number.isFinite(custom))return custom;}return eventEndDeadline(x);}
 function excursionsHTML(){
  const list=data.excursions||[],groups=[{title:'Anstehend',items:list.filter(x=>x.date&&!eventIsPast(x)).sort(upcomingTermOrder)},{title:'Noch ohne Termin',items:list.filter(x=>!x.date&&!eventIsPast(x)).sort(upcomingTermOrder)},{title:'Vergangen',items:list.filter(eventIsPast).sort(pastTermOrder)}];
  const entry=x=>`<button type="button" class="reader-entry" data-action="excursion-edit" data-id="${esc(x.id)}" aria-label="Event ${esc(x.title)} öffnen">${termEntryBody({date:x.date,title:x.title,dateText:excursionPeriod({...x,time:''}),time:x.time,location:x.location||'Ort noch offen',organizers:'Organisatoren: '+excursionOrganizers(x),summary:adminCountSummary(excursionVoteCounts(x.id))})}</button>`;
@@ -437,6 +441,7 @@ function excursionForm(id){
  <div class="field"><label>Beginn (optional)</label><input type="date" name="date" value="${esc(x.date||'')}"></div>
  <div class="field"><label for="event-time">Uhrzeit (optional)</label><input id="event-time" type="time" name="time" value="${esc(x.time||'')}"></div>
  <div class="field"><label>Ende (bei mehreren Tagen)</label><input type="date" name="endDate" value="${esc(x.endDate||'')}"></div>
+ <div class="field"><label>Abstimmfrist (optional)</label><input type="datetime-local" name="voteDeadlineAt" value="${esc(eventDeadlineInput(x.voteDeadlineAt))}"><p class="hint">Ohne eigene Frist endet die Abstimmung am letzten Eventtag um 23:59 Uhr. Die Erinnerung richtet sich nach den Abstimmungseinstellungen.</p></div>
  <div class="field"><label>Ort / Ziel</label><input name="location" maxlength="180" value="${esc(x.location||'')}" placeholder="Optional"></div>
  <div class="field"><label>Beschreibung</label><textarea name="notes" maxlength="2000" placeholder="Optional">${esc(x.notes||'')}</textarea></div>
  <div class="field"><label>Organisatoren (mehrere möglich)</label><div class="organizer-grid">${[...data.members].sort(byMemberNo).map(m=>`<label class="organizer-option"><input type="checkbox" name="organizerIds" value="${esc(m.id)}" ${x.organizerIds?.includes(m.id)?'checked':''}><span>${memberNo(m)!==null?'Nr. '+memberNo(m)+' · ':''}${esc(m.name)}</span></label>`).join('')||'<p class="muted">Noch keine Mitglieder vorhanden</p>'}</div></div>
@@ -473,15 +478,17 @@ async function adminExcursionVote(excursionId,memberId,status){
  finally{buttons.forEach(b=>b.disabled=!cloudReady||!!excursionVoteWarning);}
 }
 function saveExcursion(fd){
- const id=String(fd.get('id')||''),title=String(fd.get('title')||'').trim(),date=String(fd.get('date')||''),endDate=String(fd.get('endDate')||''),time=String(fd.get('time')||''),location=String(fd.get('location')||'').trim(),notes=String(fd.get('notes')||'').trim(),organizerOther=String(fd.get('organizerOther')||'').trim();
+ const id=String(fd.get('id')||''),title=String(fd.get('title')||'').trim(),date=String(fd.get('date')||''),endDate=String(fd.get('endDate')||''),time=String(fd.get('time')||''),location=String(fd.get('location')||'').trim(),notes=String(fd.get('notes')||'').trim(),organizerOther=String(fd.get('organizerOther')||'').trim(),deadlineInput=String(fd.get('voteDeadlineAt')||''),voteDeadlineAt=eventDeadlineISO(deadlineInput);
  if(!title||title.length>120||location.length>180||notes.length>2000||organizerOther.length>200)return alert('Bitte gültige Eventsdaten eintragen.');
  if(date&&!/^\d{4}-\d{2}-\d{2}$/.test(date))return alert('Ungültiges Startdatum.');
  if(endDate&&(!date||!/^\d{4}-\d{2}-\d{2}$/.test(endDate)||endDate<date))return alert('Enddatum muss am oder nach dem Startdatum liegen.');
  if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return alert('Ungültige Uhrzeit.');
+ if(deadlineInput&&!voteDeadlineAt)return alert('Ungültige Abstimmfrist oder Uhrzeit in der Zeitumstellung.');
+ if(voteDeadlineAt&&(!date||Date.parse(voteDeadlineAt)>eventEndDeadline({date,endDate})))return alert('Die Abstimmfrist muss spätestens am letzten Eventtag um 23:59 Uhr liegen.');
  const ids=[...new Set(fd.getAll('organizerIds').map(String))];if(ids.some(n=>!member(n)))return alert('Ein Organisator ist nicht mehr vorhanden.');
  const stored=id?(data.excursions||[]).find(x=>x.id===id):null;
  if(id&&!stored)return alert('Event nicht gefunden.');
- const x={id:id||uid(),title,date,endDate,time,location,notes,organizerIds:ids,organizerOther,completed:fd.has('completed'),createdAt:stored?.createdAt||new Date().toISOString()};
+ const x={id:id||uid(),title,date,endDate,time,location,notes,organizerIds:ids,organizerOther,completed:fd.has('completed'),voteDeadlineAt,createdAt:stored?.createdAt||new Date().toISOString()};
  if(stored)Object.assign(stored,x);else data.excursions.push(x);
  closeModal();persist();
 }
@@ -1033,7 +1040,7 @@ function publicSnapshot(opts){
  const fines=allowFines?data.fines.map(f=>({id:f.id,memberId:f.memberId,meetingId:f.meetingId||null,date:f.date||'',reason:(f.source==='absence'&&!allowAbsences?'Abwesenheitsstrafe':f.reason),amountCents:n(f.amountCents),source:f.source||'manual'})):[];
  const payments=allowFines?data.payments.map(p=>({id:p.id,fineId:p.fineId,amountCents:n(p.amountCents),method:p.method||'Bar'})):[];
  const cashbook=allowCash?{balanceCents:accountBalance(),monthlyAmountCents:cash().monthlyAmountCents,monthlyDay:cash().monthlyDay||1,monthlyStartMonth:cash().monthlyStartMonth,transactions:cashHistory().filter(t=>allowFines||t.type!=='payment').map(t=>({id:t.id,type:t.type,month:t.month||'',note:t.note||'',amountCents:t.amountCents,date:t.date||''}))}:null;
- const excursions=opts.excursions?(data.excursions||[]).map(x=>({id:x.id,title:x.title,date:x.date||'',endDate:x.endDate||'',time:x.time||'',location:x.location||'',notes:x.notes||'',organizerIds:(x.organizerIds||[]).filter(id=>!!member(id)),organizerOther:x.organizerOther||'',completed:x.completed===true})):[];
+ const excursions=opts.excursions?(data.excursions||[]).map(x=>({id:x.id,title:x.title,date:x.date||'',endDate:x.endDate||'',time:x.time||'',location:x.location||'',notes:x.notes||'',organizerIds:(x.organizerIds||[]).filter(id=>!!member(id)),organizerOther:x.organizerOther||'',completed:x.completed===true,voteDeadlineAt:x.voteDeadlineAt||''})):[];
  return {schemaVersion:4,rsvpCutoffHours:voteDeadlineHours(),publishedAt:new Date().toISOString(),sections:{members:allowMembers,meetings:allowMeetings,excursions:!!opts.excursions,absences:allowAbsences,fines:allowFines,cash:allowCash},members,meetings,excursions,fines,payments,cashbook};
 }
 async function publishPublic(ask=true){
