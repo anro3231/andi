@@ -2,6 +2,10 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.1.2
+
+- Status-Badge beim nächsten Stammtisch auf der Startseite entfernt. Der Button „Event öffnen“ verwendet in Admin- und Lesemodus dieselbe Darstellung wie „Stammtisch öffnen“.
+
 ## Version 4.1.1
 
 - Auf der Startseite steht der Organisator vor dem Abstimmungs-Countdown, im Admin- und Lesemodus.
