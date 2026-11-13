@@ -48,7 +48,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.1.5";
+const APP_VERSION = window.FX_VERSION || "4.1.6";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -314,7 +314,7 @@ function dashboardAttendanceHTML(m){
  return `<div class="rsvp-preview"><div class="rsvp-faces">${yes.slice(0,8).map(p=>memberAvatar(p.id,initials(p.name))).join('')}${yes.length>8?`<span class="rsvp-more">+${yes.length-8}</span>`:''}</div>${adminCountSummary({yes:yes.length,no:people.filter(p=>effectiveAttendance(m,p.id)?.status==='absent').length,unsure:people.filter(p=>effectiveAttendance(m,p.id)?.status==='unsure').length})}</div>`;
 }
 function nextEventDetails(x){
- return `<strong class="excursion-title next-event-title">${esc(x.title)}</strong><div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date event-date">${excursionPeriod({...x,time:''})}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${x.time?esc(x.time)+' Uhr':'Uhrzeit noch offen'}</span><span>${uiSymbol('location','⌖')}${esc(x.location||'Ort noch offen')}</span></div><p class="next-organizer event-organizer">${uiSymbol('members','♙')}<span>Organisatoren: ${esc(excursionOrganizers(x))}</span></p>`;
+ return `<div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date event-date">${excursionPeriod({...x,time:''})}</strong></div><strong class="excursion-title next-event-title">${esc(x.title)}</strong><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${x.time?esc(x.time)+' Uhr':'Uhrzeit noch offen'}</span><span>${uiSymbol('location','⌖')}${esc(x.location||'Ort noch offen')}</span></div><p class="next-organizer event-organizer">${uiSymbol('members','♙')}<span>Organisatoren: ${esc(excursionOrganizers(x))}</span></p>`;
 }
 function homeHTML(){
  const completed=data.meetings.filter(m=>m.date<today()).sort((a,b)=>b.date.localeCompare(a.date));

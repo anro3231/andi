@@ -193,7 +193,7 @@ function dashboardAttendanceHTML(m){
  return `<div class="rsvp-preview"><div class="rsvp-faces">${yes.slice(0,8).map(p=>avatarFor(p.id)).join('')}${yes.length>8?`<span class="rsvp-more">+${yes.length-8}</span>`:''}</div>${readerCountSummary(c)}</div>`;
 }
 function nextEventDetails(x){
- return `<strong class="excursion-title next-event-title">${esc(x.title)}</strong><div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date event-date">${tripDateLabel({...x,time:''})}</strong></div><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${x.time?esc(x.time)+' Uhr':'Uhrzeit noch offen'}</span><span>${uiSymbol('location','⌖')}${esc(x.location||'Ort noch offen')}</span></div><p class="next-organizer event-organizer">${uiSymbol('members','♙')}<span>Organisatoren: ${esc(tripOrganizers(x))}</span></p>`;
+ return `<div class="next-date-row"><span class="next-calendar">${uiSymbol('calendar','▦')}</span><strong class="next-date event-date">${tripDateLabel({...x,time:''})}</strong></div><strong class="excursion-title next-event-title">${esc(x.title)}</strong><div class="next-place next-meta"><span>${uiSymbol('clock','◷')}${x.time?esc(x.time)+' Uhr':'Uhrzeit noch offen'}</span><span>${uiSymbol('location','⌖')}${esc(x.location||'Ort noch offen')}</span></div><p class="next-organizer event-organizer">${uiSymbol('members','♙')}<span>Organisatoren: ${esc(tripOrganizers(x))}</span></p>`;
 }
 function dashboard(){
  const completed=data.meetings.filter(m=>m.date<today()).sort((a,b)=>b.date.localeCompare(a.date));

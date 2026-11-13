@@ -2,6 +2,10 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.1.6
+
+- Auf der Startseite steht die Eventbezeichnung direkt unter dem Datum, einheitlich im Admin- und Lesemodus.
+
 ## Version 4.1.5
 
 - Event-Organisatoren und Admins können eine eigene Abstimmfrist festlegen. Ohne eigene Frist ist die Abstimmung bis zum letzten Eventtag um 23:59 Uhr offen.
