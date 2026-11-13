@@ -2,6 +2,15 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
+## Version 4.1.6
+
+- Auf der Startseite steht die Eventbezeichnung direkt unter dem Datum, einheitlich im Admin- und Lesemodus.
+- Organisator-Bearbeitung verwendet für Stammtisch und Event denselben Dialogablauf; Events ergänzen Beginn, Ende und Abstimmfrist.
+- Mitglieder können Admin-Korrekturen vor Fristablauf weiterhin selbst ändern. Admins können Stimmen in beiden Terminarten explizit auf „Offen“ zurücksetzen.
+- Eine Terminänderung benachrichtigt weiterhin alle anderen Mitglieder; der auslösende Admin erhält keine eigene Event-Änderungs-Glocke.
+- Eventänderungen durch Mitglieder lösen neben der Glockennachricht auch einen Push an die übrigen Mitglieder aus.
+- Die Event-Abstimmfrist erscheint im selben Frist-Chip wie beim Stammtisch.
+
 ## Version 4.1.5
 
 - Event-Organisatoren und Admins können eine eigene Abstimmfrist festlegen. Ohne eigene Frist ist die Abstimmung bis zum letzten Eventtag um 23:59 Uhr offen.
