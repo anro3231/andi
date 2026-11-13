@@ -1,4 +1,4 @@
-const CACHE='fantastix-v4.1.5';
+const CACHE='fantastix-v4.1.6';
 // App-Icon: bewusst nur 1 für ungelesen; ohne API bleibt die App unverändert nutzbar.
 let fxBadgeQueue=Promise.resolve();
 function fxSetIconBadge(unread){
@@ -9,7 +9,7 @@ function fxSetIconBadge(unread){
   else if(typeof navigator.setAppBadge==='function')await navigator.setAppBadge(0);
  }).catch(()=>{});return fxBadgeQueue;
 }
-const FILES=['./','./reader-themes.js?v=4.1.5','./reader-themes.css?v=4.1.5','./photo-feature.js?v=4.1.5','./modern.css?v=4.1.5','./ui-icons.js?v=4.1.5','./index.html','./version.js','./app.js','./lesen.html','./lesen.js','./calendar-view.js?v=4.1.5','./push-config.js','./manifest.webmanifest','./leser-manifest.webmanifest','./fantastix-logo.png','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-180.png'];
+const FILES=['./','./reader-themes.js?v=4.1.6','./reader-themes.css?v=4.1.6','./photo-feature.js?v=4.1.6','./modern.css?v=4.1.6','./ui-icons.js?v=4.1.6','./index.html','./version.js','./app.js','./lesen.html','./lesen.js','./calendar-view.js?v=4.1.6','./push-config.js','./manifest.webmanifest','./leser-manifest.webmanifest','./fantastix-logo.png','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-180.png'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  // Kein caches.addAll(): eine einzige fehlende Datei würde die komplette SW-Aktivierung
  // verhindern und PushManager.subscribe() mit "requires an active service worker" abbrechen.
@@ -62,7 +62,7 @@ async function fxShowPushOnce(eventKey,show){
 // Echte Web Push Nachricht - auch bei geschlossener FantastiX Web-App.
 self.addEventListener('push',event=>{
  let payload={};try{payload=event.data?.json()||{};}catch{payload={};}
- const kind=['meeting_new','announcement','vote_reminder','event_new','admin_test','meeting_organizer','event_organizer','meeting_location','birthday','fine_new'].includes(payload.kind)?payload.kind:'announcement';
+ const kind=['meeting_new','announcement','vote_reminder','event_new','event_changed','admin_test','meeting_organizer','event_organizer','meeting_location','birthday','fine_new'].includes(payload.kind)?payload.kind:'announcement';
  if(kind==='birthday'){
   const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
   if(String(payload.tag||'').split(':')[1]!==`${parts.year}-${parts.month}-${parts.day}`)return;
@@ -74,7 +74,7 @@ self.addEventListener('push',event=>{
  const display=()=>fxShowPushOnce(eventKey,()=>Promise.all([kind==='admin_test'?Promise.resolve():fxSetIconBadge(true),self.registration.showNotification(title,{
   body, icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',
   tag:eventKey||('fantastix-'+kind),
-  data:{audience:kind==='admin_test'?'admin':'reader',tab:kind==='admin_test'?'settings':['event_new','event_organizer'].includes(kind)?'excursions':kind==='birthday'?'members':kind==='fine_new'?'cash':kind==='announcement'?'dashboard':'meetings'},
+  data:{audience:kind==='admin_test'?'admin':'reader',tab:kind==='admin_test'?'settings':['event_new','event_changed','event_organizer'].includes(kind)?'excursions':kind==='birthday'?'members':kind==='fine_new'?'cash':kind==='announcement'?'dashboard':'meetings'},
   renotify:false
  })]));
  // Serialize overlapping push events, including storage checks and writes.
