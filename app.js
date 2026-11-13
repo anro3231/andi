@@ -48,7 +48,7 @@ const BASELINE_KEY = 'stammtischplus.cloud.baseline.v1';
 const SNAP_DB = 'stammtischplus-local-snapshots-v1';
 const SNAP_STORE = 'versions';
 const SNAP_LIMIT = 50;
-const APP_VERSION = window.FX_VERSION || "4.1.6";
+const APP_VERSION = window.FX_VERSION || "4.1.7";
 const DEFAULT = () => ({version:1,modifiedAt:new Date().toISOString(),members:[],meetings:[],excursions:[],fines:[],payments:[]});
 const $ = s => document.querySelector(s);
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -182,7 +182,7 @@ function voteTime(value){
  return new Intl.DateTimeFormat('de-AT',{timeZone:'Europe/Vienna',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(parsed).replace(',', ' · ')+' Uhr';
 }
 
-function voteStampText(value,byAdmin=false){return 'Abgestimmt: '+(value?voteTime(value):'Zeitpunkt nicht erfasst')+(byAdmin?' (durch Admin)':'');}
+function voteStampText(value,byAdmin=false){return 'Abgestimmt: '+(value?voteTime(value):'Zeitpunkt nicht erfasst')+(byAdmin?' (Durch Admin)':'');}
 function voteStampHTML(value,byAdmin=false){return value||byAdmin?`<small class="vote-stamp">${esc(voteStampText(value,byAdmin))}</small>`:'';}
 
 function effectiveAttendance(m,id){const own=m.attendance?.[id];return own&&['present','absent','unsure'].includes(own.status)?own:null;}
@@ -423,18 +423,18 @@ function excursionForm(id){
  const ownMemberId=readerProfiles.find(p=>p.user_id===cloudUser?.id)?.member_id;
  const countLabel=()=>eventVoteSummary(x.id);
  const voteHTML=id?`<div class="separator"></div><h3>Rückmeldungen · <span id="excursion-vote-count">${countLabel()}</span></h3>
- <p class="hint">Als Administrator kannst du jede Rückmeldung direkt ändern – auch nach dem Event. Eine Korrektur für ein anderes Mitglied bleibt geschützt, bis du sie auf „Offen“ zurücksetzt.</p>
+ <p class="hint">Als Administrator kannst du Rückmeldungen direkt ändern oder auf „Offen“ setzen.</p>
  ${!ownMemberId?'<p class="hint">Tipp: Dein eigenes Admin-Konto kannst du unter Mehr → Benutzer verwalten einem Mitglied zuordnen.</p>':''}
  ${!cloudReady?'<p class="notice warning">Zum Abstimmen bitte zuerst die Admin-Cloud verbinden.</p>':''}
  ${excursionVoteWarning?`<p class="notice warning">${esc(excursionVoteWarning)}</p>`:''}
  <div class="list">${[...data.members].filter(m=>m.active!==false||already.some(v=>v.member_id===m.id)).sort((a,b)=>Number(mineFirst(b,ownMemberId))-Number(mineFirst(a,ownMemberId))||byMemberNo(a,b)).map(m=>{
   const v=already.find(v=>v.member_id===m.id),isMine=ownMemberId===m.id;
-  return `<div class="item excursion-vote-admin-row" data-excursion-row="${esc(m.id)}">
-   <div class="details"><strong>${esc(m.name)}${isMine?' <span class="chip">Ich</span>':''}</strong>
+  return `<div class="member-att excursion-vote-admin-row" data-excursion-row="${esc(m.id)}">
+   <div class="row"><div class="details"><strong>${esc(m.name)}${isMine?' <span class="chip">Ich</span>':''}</strong>
    <small class="excursion-vote-label">${voteStatusHTML(v?.status)}</small>${voteStampHTML(v?.updated_at,!!(v?.admin_cast||v?.admin_locked))}${v?.status==='yes'&&v.note?`<small class="vote-note">📝 ${esc(v.note)}</small>`:''}</div>
-   <div class="excursion-admin-vote-buttons" role="group" aria-label="Eventszusage für ${esc(m.name)}">
+   <div class="seg excursion-admin-vote-buttons" role="group" aria-label="Eventszusage für ${esc(m.name)}">
     ${[['yes','Dabei'],['unsure','Unsicher'],['no','Nicht dabei'],['clear','Offen']].map(([status,label])=>`<button type="button" class="excursion-admin-choice ${(!v&&status==='clear')||v?.status===status?'is-selected':''}" data-action="excursion-admin-vote" data-id="${esc(x.id)}" data-member="${esc(m.id)}" data-status="${status}" aria-label="${status==='yes'?'Dabei':status==='no'?'Nicht dabei':status==='unsure'?'Unsicher':'Offen'}" aria-pressed="${String((!v&&status==='clear')||v?.status===status)}" ${!cloudReady||!!excursionVoteWarning?'disabled':''}>${status==='clear'?label:voteStatusIcon(status)}</button>`).join('')}
-   </div></div>`;
+   </div></div></div>`;
  }).join('')}</div>`:'';
  openAdminEntry(id?'Event bearbeiten':'Event planen',`<form data-form="excursion"><input type="hidden" name="id" value="${esc(x.id)}">
  <div class="field"><label>Bezeichnung *</label><input name="title" maxlength="120" value="${esc(x.title)}" placeholder="z. B. Hüttenwochenende" required></div>
@@ -442,7 +442,7 @@ function excursionForm(id){
  <div class="field"><label>Datum bis (bei mehrtägigen Events)</label><input type="date" name="endDate" value="${esc(x.endDate||'')}"></div>
  <div class="field"><label for="event-time">Uhrzeit (optional)</label><input id="event-time" type="time" name="time" value="${esc(x.time||'')}"></div>
  <div class="field"><label>Ort / Ziel</label><input name="location" maxlength="180" value="${esc(x.location||'')}" placeholder="Optional"></div>
- <div class="field"><label>Abstimmfrist (optional)</label><input type="datetime-local" name="voteDeadlineAt" value="${esc(eventDeadlineInput(x.voteDeadlineAt))}"><p class="hint">Ohne eigene Frist endet die Abstimmung am letzten Eventtag um 23:59 Uhr. Die Erinnerung richtet sich nach den Abstimmungseinstellungen.</p></div>
+ <div class="field"><label>Abstimmfrist (optional)</label><input class="event-vote-deadline-input" type="datetime-local" name="voteDeadlineAt" value="${esc(eventDeadlineInput(x.voteDeadlineAt))}"><p class="hint">Ohne eigene Frist endet die Abstimmung am letzten Eventtag um 23:59 Uhr. Die Erinnerung richtet sich nach den Abstimmungseinstellungen.</p></div>
  <div class="field"><label>Beschreibung</label><textarea name="notes" maxlength="2000" placeholder="Optional">${esc(x.notes||'')}</textarea></div>
  <div class="field"><label>Organisatoren (mehrere möglich)</label><div class="organizer-grid">${[...data.members].sort(byMemberNo).map(m=>`<label class="organizer-option"><input type="checkbox" name="organizerIds" value="${esc(m.id)}" ${x.organizerIds?.includes(m.id)?'checked':''}><span>${memberNo(m)!==null?'Nr. '+memberNo(m)+' · ':''}${esc(m.name)}</span></label>`).join('')||'<p class="muted">Noch keine Mitglieder vorhanden</p>'}</div></div>
  <div class="field"><label>Weitere Organisatoren (optional)</label><input name="organizerOther" maxlength="200" value="${esc(x.organizerOther||'')}" placeholder="Namen, durch Komma getrennt"></div>

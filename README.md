@@ -2,8 +2,13 @@
 
 Stammtisch-App als statische Website mit Admin- und Lesemodus sowie Supabase für Anmeldung, Daten und serverseitige Benachrichtigungen.
 
-## Version 4.1.6
+## Version 4.1.7
 
+- Abstimmungslisten für Events und Stammtische sind im Adminmodus einheitlich ausgerichtet.
+- Admin-Stimmen bei Events blockieren Mitglieder nicht; Mitglieder können bis zur Abstimmfrist selbst abstimmen.
+- Admin-Stimmen bei Events sind mit „Durch Admin“ gekennzeichnet.
+- Das Event-Abstimmfristfeld ist kompakter dargestellt.
+- Organisatoren erhalten bei Mitgliederstimmen zu Stammtischen und Events eine Glockennachricht.
 - Auf der Startseite steht die Eventbezeichnung direkt unter dem Datum, einheitlich im Admin- und Lesemodus.
 - Organisator-Bearbeitung verwendet für Stammtisch und Event denselben Dialogablauf; Events ergänzen Beginn, Ende und Abstimmfrist.
 - Mitglieder können Admin-Korrekturen vor Fristablauf weiterhin selbst ändern. Admins können Stimmen in beiden Terminarten explizit auf „Offen“ zurücksetzen.
